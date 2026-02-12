@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>וואי מרקט CRM - ניהול לידים</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --purple: #9333ea;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--gray-100); color: var(--gray-800); min-height: 100vh; }
+
+/* Header */
+.header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-md); }
+.header h1 { font-size: 22px; font-weight: 700; }
+.header-actions { display: flex; gap: 10px; }
+.header-actions button { background: rgba(255,255,255,.2); color: #fff; border: 1px solid rgba(255,255,255,.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; transition: all .2s; }
+.header-actions button:hover { background: rgba(255,255,255,.35); }
+
+/* Tabs */
+.tabs { display: flex; background: #fff; border-bottom: 1px solid var(--gray-200); padding: 0 24px; gap: 4px; overflow-x: auto; }
+.tab { padding: 14px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--gray-500); border-bottom: 3px solid transparent; transition: all .2s; white-space: nowrap; }
+.tab:hover { color: var(--gray-700); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.tab .badge { background: var(--primary); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 10px; margin-right: 6px; }
+
+/* Main */
+.main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* Dashboard Cards */
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); transition: transform .2s; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-card .label { font-size: 13px; color: var(--gray-500); margin-bottom: 6px; }
+.stat-card .value { font-size: 32px; font-weight: 700; }
+.stat-card .sub { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+.stat-card.blue .value { color: var(--primary); }
+.stat-card.green .value { color: var(--success); }
+.stat-card.orange .value { color: var(--warning); }
+.stat-card.red .value { color: var(--danger); }
+.stat-card.purple .value { color: var(--purple); }
+
+/* Pipeline */
+.pipeline { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 16px; margin-bottom: 24px; }
+.pipeline-stage { flex: 0 0 160px; background: #fff; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); text-align: center; cursor: pointer; transition: all .2s; border: 2px solid transparent; }
+.pipeline-stage:hover { border-color: var(--primary); }
+.pipeline-stage.active-filter { border-color: var(--primary); background: #eff6ff; }
+.pipeline-stage .stage-name { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+.pipeline-stage .stage-count { font-size: 28px; font-weight: 700; }
+.pipeline-stage .stage-pct { font-size: 11px; color: var(--gray-400); }
+
+/* Filters */
+.filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+.filter-group select, .filter-group input { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; }
+.filter-group input { width: 200px; }
+
+/* Table */
+.table-wrap { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead th { background: var(--gray-50); padding: 12px 16px; text-align: right; font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--gray-200); cursor: pointer; user-select: none; white-space: nowrap; }
+thead th:hover { background: var(--gray-100); }
+tbody td { padding: 12px 16px; border-bottom: 1px solid var(--gray-100); font-size: 14px; }
+tbody tr { transition: background .15s; cursor: pointer; }
+tbody tr:hover { background: #f0f7ff; }
+tbody tr.priority-a { border-right: 3px solid var(--primary); }
+tbody tr.priority-b { border-right: 3px solid var(--gray-300); }
+
+/* Status badges */
+.status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.status-new { background: #e5e7eb; color: #374151; }
+.status-attempt { background: #fef3c7; color: #92400e; }
+.status-interested { background: #d1fae5; color: #065f46; }
+.status-not-interested { background: #fee2e2; color: #991b1b; }
+.status-callback { background: #dbeafe; color: #1e40af; }
+.status-quote { background: #ede9fe; color: #5b21b6; }
+.status-meeting { background: #fce7f3; color: #9d174d; }
+.status-meeting-done { background: #cffafe; color: #155e75; }
+.status-order { background: #065f46; color: #fff; }
+.status-not-relevant { background: #f3f4f6; color: #9ca3af; }
+
+.priority-badge { display: inline-block; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700; }
+.priority-a { background: var(--primary); color: #fff; }
+.priority-b { background: var(--gray-300); color: var(--gray-600); }
+
+/* Call button */
+.call-btn { display: inline-flex; align-items: center; gap: 5px; background: var(--success); color: #fff; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; transition: all .2s; }
+.call-btn:hover { background: #15803d; transform: scale(1.05); }
+.wa-btn { background: #25d366; }
+.wa-btn:hover { background: #1da851; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 200; justify-content: center; align-items: flex-start; padding: 40px 20px; overflow-y: auto; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: var(--radius); width: 100%; max-width: 700px; box-shadow: var(--shadow-lg); animation: slideIn .25s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h2 { font-size: 18px; }
+.modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--gray-400); padding: 4px; }
+.modal-close:hover { color: var(--gray-600); }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Lead Detail Card */
+.lead-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.lead-info { display: flex; flex-direction: column; gap: 12px; }
+.lead-field { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100); }
+.lead-field .label { font-size: 13px; color: var(--gray-500); }
+.lead-field .value { font-size: 14px; font-weight: 500; }
+.lead-actions-area { display: flex; flex-direction: column; gap: 12px; }
+.action-group { background: var(--gray-50); border-radius: 10px; padding: 16px; }
+.action-group h4 { font-size: 14px; margin-bottom: 12px; color: var(--gray-600); }
+.action-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.action-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--gray-300); background: #fff; cursor: pointer; font-size: 13px; font-family: inherit; transition: all .2s; }
+.action-btn:hover { background: var(--gray-100); border-color: var(--gray-400); }
+.action-btn.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Call Log */
+.call-log { margin-top: 20px; }
+.call-log h4 { font-size: 14px; margin-bottom: 12px; color: var(--gray-600); }
+.log-entry { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 8px; }
+.log-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.log-icon.call { background: #dbeafe; }
+.log-icon.status { background: #d1fae5; }
+.log-icon.note { background: #fef3c7; }
+.log-content { flex: 1; }
+.log-content .log-title { font-size: 13px; font-weight: 600; }
+.log-content .log-time { font-size: 11px; color: var(--gray-400); }
+.log-content .log-note { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+
+/* Notes */
+.notes-area { margin-top: 16px; }
+.notes-area textarea { width: 100%; padding: 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 80px; }
+.notes-area .add-note-btn { margin-top: 8px; background: var(--primary); color: #fff; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; }
+.notes-area .add-note-btn:hover { background: var(--primary-dark); }
+
+/* Scheduler */
+.scheduler-row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.scheduler-row input[type="date"], .scheduler-row input[type="time"] { padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 13px; font-family: inherit; }
+.scheduler-row .schedule-btn { background: var(--warning); color: #fff; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; }
+
+/* Dialer View */
+.dialer-container { display: grid; grid-template-columns: 350px 1fr; gap: 24px; min-height: 600px; }
+.dialer-queue { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.dialer-queue-header { padding: 16px 20px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+.dialer-queue-header h3 { font-size: 15px; }
+.queue-item { padding: 14px 20px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background .15s; display: flex; align-items: center; gap: 12px; }
+.queue-item:hover { background: #f0f7ff; }
+.queue-item.active { background: #eff6ff; border-right: 3px solid var(--primary); }
+.queue-item .qi-info { flex: 1; }
+.queue-item .qi-name { font-size: 14px; font-weight: 600; }
+.queue-item .qi-garden { font-size: 12px; color: var(--gray-500); }
+.queue-item .qi-city { font-size: 11px; color: var(--gray-400); }
+
+.dialer-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; }
+.dialer-card .dc-header { text-align: center; margin-bottom: 28px; }
+.dialer-card .dc-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.dialer-card .dc-garden { font-size: 16px; color: var(--gray-500); margin-bottom: 4px; }
+.dialer-card .dc-city { font-size: 14px; color: var(--gray-400); }
+.dialer-card .dc-phone { font-size: 28px; font-weight: 700; color: var(--primary); margin: 20px 0; letter-spacing: 2px; direction: ltr; }
+.dialer-card .dc-actions { display: flex; justify-content: center; gap: 12px; margin-bottom: 28px; }
+.dialer-card .dc-actions button { padding: 14px 32px; border-radius: 12px; border: none; cursor: pointer; font-size: 16px; font-family: inherit; font-weight: 600; transition: all .2s; }
+.dialer-card .dc-actions .big-call { background: var(--success); color: #fff; }
+.dialer-card .dc-actions .big-call:hover { background: #15803d; transform: scale(1.05); }
+.dialer-card .dc-actions .big-wa { background: #25d366; color: #fff; }
+.dialer-card .dc-actions .big-wa:hover { background: #1da851; }
+
+.dialer-card .dc-result { background: var(--gray-50); border-radius: 12px; padding: 20px; }
+.dc-result h4 { margin-bottom: 12px; font-size: 14px; color: var(--gray-600); }
+.result-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.result-opt { padding: 10px 18px; border-radius: 10px; border: 2px solid var(--gray-200); background: #fff; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 500; transition: all .2s; }
+.result-opt:hover { border-color: var(--primary); }
+.result-opt.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+.result-opt.red.selected { background: var(--danger); border-color: var(--danger); }
+.result-opt.green.selected { background: var(--success); border-color: var(--success); }
+.result-opt.orange.selected { background: var(--warning); border-color: var(--warning); }
+.dc-note { width: 100%; padding: 12px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px; margin-bottom: 12px; }
+.dc-save { width: 100%; background: var(--primary); color: #fff; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .2s; }
+.dc-save:hover { background: var(--primary-dark); }
+.dc-save:disabled { background: var(--gray-300); cursor: not-allowed; }
+.dc-next { width: 100%; background: var(--gray-200); color: var(--gray-600); border: none; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit; margin-top: 8px; transition: all .2s; }
+.dc-next:hover { background: var(--gray-300); }
+
+/* Charts area */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+.chart-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+.chart-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--gray-600); }
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 12px; }
+.bar-label { width: 100px; font-size: 13px; text-align: left; color: var(--gray-600); flex-shrink: 0; }
+.bar-track { flex: 1; height: 24px; background: var(--gray-100); border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 600; color: #fff; transition: width .5s ease; min-width: fit-content; }
+.bar-count { width: 36px; font-size: 13px; font-weight: 600; text-align: center; }
+
+/* Today's Tasks */
+.today-tasks { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 24px; }
+.today-tasks h3 { font-size: 15px; margin-bottom: 16px; }
+.task-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--gray-50); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+.task-item:hover { background: #eff6ff; }
+.task-icon { font-size: 20px; }
+.task-info { flex: 1; }
+.task-info .task-name { font-size: 14px; font-weight: 500; }
+.task-info .task-detail { font-size: 12px; color: var(--gray-400); }
+.task-time { font-size: 12px; color: var(--gray-500); background: var(--gray-100); padding: 4px 8px; border-radius: 6px; }
+
+/* Export area */
+.export-section { margin-top: 24px; display: flex; gap: 12px; }
+.export-btn { padding: 10px 24px; border-radius: 8px; border: 1px solid var(--gray-300); background: #fff; cursor: pointer; font-size: 13px; font-family: inherit; transition: all .2s; }
+.export-btn:hover { background: var(--gray-100); }
+.export-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.export-btn.primary:hover { background: var(--primary-dark); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dialer-container { grid-template-columns: 1fr; }
+  .lead-detail { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 18px; }
+  .main { padding: 12px 16px; }
+  .tabs { padding: 0 12px; }
+  .dashboard-grid { grid-template-columns: 1fr 1fr; }
+  .pipeline { flex-wrap: wrap; }
+  .pipeline-stage { flex: 0 0 calc(50% - 4px); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+.queue-scroll { max-height: 600px; overflow-y: auto; }
+
+/* Animations */
+.fade-in { animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; } }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--gray-400); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; }
+
+.highlight-row { animation: highlightPulse 1.5s ease; }
+@keyframes highlightPulse { 0%,100% { background: transparent; } 50% { background: #dbeafe; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>&#x1F4DE; וואי מרקט CRM</h1>
+  <div class="header-actions">
+    <button onclick="exportData()">&#x1F4E5; ייצוא נתונים</button>
+    <button onclick="document.getElementById('importFile').click()">&#x1F4E4; ייבוא נתונים</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button onclick="resetData()" style="border-color:#f87171">&#x1F5D1; איפוס</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="dashboard">&#x1F4CA; דשבורד</div>
+  <div class="tab" data-tab="dialer">&#x1F4DE; חייגן <span class="badge" id="dialerBadge">0</span></div>
+  <div class="tab" data-tab="leads">&#x1F4CB; כל הלידים <span class="badge" id="leadsBadge">150</span></div>
+  <div class="tab" data-tab="pipeline">&#x1F3AF; Pipeline</div>
+  <div class="tab" data-tab="tasks">&#x1F4C5; משימות להיום</div>
+</div>
+
+<div class="main">
+  <!-- DASHBOARD -->
+  <div class="section active" id="sec-dashboard">
+    <div class="dashboard-grid" id="statsGrid"></div>
+
+    <div class="pipeline" id="pipelineOverview"></div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>&#x1F30D; לידים לפי עיר</h3>
+        <div class="bar-chart" id="cityChart"></div>
+      </div>
+      <div class="chart-card">
+        <h3>&#x1F4C8; התקדמות שבועית</h3>
+        <div class="bar-chart" id="weeklyChart"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIALER -->
+  <div class="section" id="sec-dialer">
+    <div class="filters" style="margin-bottom:16px">
+      <div class="filter-group">
+        <label>סנן לפי עיר:</label>
+        <select id="dialerCityFilter" onchange="filterDialerQueue()">
+          <option value="">הכל</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>טבעת:</label>
+        <select id="dialerPriorityFilter" onchange="filterDialerQueue()">
+          <option value="">הכל</option>
+          <option value="A">A - עדיפות גבוהה</option>
+          <option value="B">B - עדיפות רגילה</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>סטטוס:</label>
+        <select id="dialerStatusFilter" onchange="filterDialerQueue()">
+          <option value="">הכל - לחיוג</option>
+          <option value="new">טרם נפנה</option>
+          <option value="attempt1">ניסיון 1</option>
+          <option value="attempt2">ניסיון 2</option>
+          <option value="callback">לחזור אליו</option>
+        </select>
+      </div>
+    </div>
+    <div class="dialer-container">
+      <div class="dialer-queue">
+        <div class="dialer-queue-header">
+          <h3>&#x1F4CB; תור חיוג</h3>
+          <span id="queueCount">0 לידים</span>
+        </div>
+        <div class="queue-scroll" id="dialerQueueList"></div>
+      </div>
+      <div id="dialerCard">
+        <div class="empty-state">
+          <div class="empty-icon">&#x1F4DE;</div>
+          <p>בחר ליד מהרשימה כדי להתחיל</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL LEADS -->
+  <div class="section" id="sec-leads">
+    <div class="filters">
+      <div class="filter-group">
+        <label>&#x1F50D;</label>
+        <input type="text" id="searchInput" placeholder="חיפוש לפי שם, גן, עיר..." oninput="filterLeads()">
+      </div>
+      <div class="filter-group">
+        <label>עיר:</label>
+        <select id="cityFilter" onchange="filterLeads()">
+          <option value="">הכל</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>טבעת:</label>
+        <select id="priorityFilter" onchange="filterLeads()">
+          <option value="">הכל</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>סטטוס:</label>
+        <select id="statusFilter" onchange="filterLeads()">
+          <option value="">הכל</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortLeads('#')">#</th>
+            <th onclick="sortLeads('priority')">טבעת</th>
+            <th onclick="sortLeads('city')">עיר</th>
+            <th onclick="sortLeads('garden_name')">שם הגן</th>
+            <th onclick="sortLeads('contact_name')">איש קשר</th>
+            <th>טלפון</th>
+            <th onclick="sortLeads('status')">סטטוס</th>
+            <th>ניסיונות</th>
+            <th>פעולה אחרונה</th>
+            <th>פעולות</th>
+          </tr>
+        </thead>
+        <tbody id="leadsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="section" id="sec-pipeline">
+    <h2 style="margin-bottom:20px">&#x1F3AF; Pipeline - מסע הליד</h2>
+    <div id="pipelineDetail"></div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="section" id="sec-tasks">
+    <h2 style="margin-bottom:20px">&#x1F4C5; משימות להיום</h2>
+    <div id="todayTasks"></div>
+    <h2 style="margin:24px 0 20px">&#x1F4C6; משימות עתידיות</h2>
+    <div id="futureTasks"></div>
+  </div>
+</div>
+
+<!-- Lead Detail Modal -->
+<div class="modal-overlay" id="leadModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">פרטי ליד</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+const INITIAL_LEADS = [
+  {
+    "id": 1,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "ויצו",
+    "contact_name": "ענבל גיספן",
+    "address": "המצפה 4",
+    "phone": "050-9646777"
+  },
+  {
+    "id": 2,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "כוכבים",
+    "contact_name": "מירי פרץ",
+    "address": "עמק זבולון 19",
+    "phone": "053-2764305"
+  },
+  {
+    "id": 3,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "מעון עילאי",
+    "contact_name": "מאיה אלימלך",
+    "address": "הגליל 3",
+    "phone": "055-2659113"
+  },
+  {
+    "id": 4,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "מעון חב\"ד",
+    "contact_name": "דבורי האס",
+    "address": "הרי יהודה 33",
+    "phone": "054-8598385"
+  },
+  {
+    "id": 5,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "ניוטון",
+    "contact_name": "לימור וולק",
+    "address": "הנגב 11",
+    "phone": "054-6993666"
+  },
+  {
+    "id": 6,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "הגן של מורן",
+    "contact_name": "מורן חדד",
+    "address": "הגליל 44",
+    "phone": "050-8911585"
+  },
+  {
+    "id": 7,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "הגן של שירי",
+    "contact_name": "שירי אורון טל",
+    "address": "עין גדי 1",
+    "phone": "054-9217616"
+  },
+  {
+    "id": 8,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "עננים",
+    "contact_name": "אושרית מזרחי",
+    "address": "הגליל 45",
+    "phone": "052-3898640"
+  },
+  {
+    "id": 9,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "ילדותי",
+    "contact_name": "שמרית סויסה",
+    "address": "הרי יהודה 34/36",
+    "phone": "052-6741263"
+  },
+  {
+    "id": 10,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "הגן של אלן",
+    "contact_name": "אלן דורלה",
+    "address": "הגלעד 2",
+    "phone": "053-3037674"
+  },
+  {
+    "id": 11,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "צעדים ראשונים",
+    "contact_name": "ג'יסל ניגרי קרבליו",
+    "address": "ים המלח 37 א'",
+    "phone": "050-7896810"
+  },
+  {
+    "id": 12,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "הגן של איילת",
+    "contact_name": "איילת רוזן",
+    "address": "ים המלח 4",
+    "phone": "052-3265225"
+  },
+  {
+    "id": 13,
+    "priority": "A",
+    "city": "גני תקווה",
+    "garden_name": "הגן הבריא",
+    "contact_name": "אבי לוי",
+    "address": "עמק זבולון 5",
+    "phone": "050-5523800"
+  },
+  {
+    "id": 14,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן תמתולי",
+    "contact_name": "רוזמרין ולסקה",
+    "address": "הבשור 14",
+    "phone": "054-5241127"
+  },
+  {
+    "id": 15,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן תמתולי (סניף 2)",
+    "contact_name": "רוזמרין ולסקה",
+    "address": "דרך בגין 0",
+    "phone": "054-5241127"
+  },
+  {
+    "id": 16,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "המשפחתון של לאה",
+    "contact_name": "לאה סינואני",
+    "address": "שבזי 155",
+    "phone": "054-2388918"
+  },
+  {
+    "id": 17,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "המעון הקסום של אסתי",
+    "contact_name": "אסתר חדד",
+    "address": "גרטי קורי 4",
+    "phone": "052-7808100"
+  },
+  {
+    "id": 18,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "היהלומים של לאה",
+    "contact_name": "לאה שמצ'י",
+    "address": "אבן עזרא 16",
+    "phone": "052-4741448"
+  },
+  {
+    "id": 19,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן לולי",
+    "contact_name": "לינור בניטה",
+    "address": "אלברט איינשטיין 8",
+    "phone": "053-7260076"
+  },
+  {
+    "id": 20,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן לולי (סניף 2)",
+    "contact_name": "לינור בניטה",
+    "address": "פול סמואלסון 7",
+    "phone": "053-7260076"
+  },
+  {
+    "id": 21,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגן של ליטל",
+    "contact_name": "ליטל גבתי",
+    "address": "גרטרוד אליון 13",
+    "phone": "052-8466999"
+  },
+  {
+    "id": 22,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן אורלי",
+    "contact_name": "אורלי אביצ'י",
+    "address": "חלמיש 6",
+    "phone": "052-2725563"
+  },
+  {
+    "id": 23,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "המשפחתון של מיטל",
+    "contact_name": "מיטל בן טובים",
+    "address": "נחום גוטמן 23",
+    "phone": "050-3338063"
+  },
+  {
+    "id": 24,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגוזלים",
+    "contact_name": "שגלית יפרח",
+    "address": "הרב עובדיה יוסף 6",
+    "phone": "052-6109290"
+  },
+  {
+    "id": 25,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הנסיכים",
+    "contact_name": "דקלה אלישף",
+    "address": "שד' בן גוריון 23",
+    "phone": "050-4673999"
+  },
+  {
+    "id": 26,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "ממלכת הילדים של נטלי",
+    "contact_name": "איל דגמי",
+    "address": "המעפיל 16",
+    "phone": "052-9636689"
+  },
+  {
+    "id": 27,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "כוכב הילדים של רותם",
+    "contact_name": "רותם חמרני",
+    "address": "הרש\"ש 37",
+    "phone": "054-4555032"
+  },
+  {
+    "id": 28,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "כוכב הילדים (סניף 2)",
+    "contact_name": "רותם חמרני",
+    "address": "הרש\"ש 33",
+    "phone": "054-4555032"
+  },
+  {
+    "id": 29,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגן של ליטל (סניף 2)",
+    "contact_name": "ליטל גבתי",
+    "address": "שד' בן גוריון 33",
+    "phone": "052-8466999"
+  },
+  {
+    "id": 30,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מותק של גן",
+    "contact_name": "מיכל דהן",
+    "address": "מלכי ישראל 11",
+    "phone": "052-6670576"
+  },
+  {
+    "id": 31,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן אפרתי",
+    "contact_name": "אפרת שמצ'י",
+    "address": "הנביאים 50",
+    "phone": "054-3803807"
+  },
+  {
+    "id": 32,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "המשפחתון של לימור",
+    "contact_name": "לימור לוי",
+    "address": "שד' בן גוריון 3",
+    "phone": "050-9880884"
+  },
+  {
+    "id": 33,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן המעיין",
+    "contact_name": "גבריאלה בנטולילה",
+    "address": "השריון 5",
+    "phone": "052-4028178"
+  },
+  {
+    "id": 34,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "המשפחתון של ענת",
+    "contact_name": "ענת רדע",
+    "address": "גלוסקא 28",
+    "phone": "050-3299755"
+  },
+  {
+    "id": 35,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגן של דניאלה",
+    "contact_name": "דניאלה בן חמו",
+    "address": "שייקה אופיר 12",
+    "phone": "054-5288892"
+  },
+  {
+    "id": 36,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן שמלהה",
+    "contact_name": "ענת רצון בלס",
+    "address": "ירדן 37",
+    "phone": "052-3773604"
+  },
+  {
+    "id": 37,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הכוכבים של שירן",
+    "contact_name": "שירן חדד צוברי",
+    "address": "יהודה הלוי 154",
+    "phone": "052-7978728"
+  },
+  {
+    "id": 38,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "שיכון ב'",
+    "contact_name": "רות לוי",
+    "address": "ג'ון קנדי 45",
+    "phone": "055-7005822"
+  },
+  {
+    "id": 39,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מצפה אפק",
+    "contact_name": "מרים מיליס",
+    "address": "סמר 10",
+    "phone": "052-6535266"
+  },
+  {
+    "id": 40,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גבעת הסלעים",
+    "contact_name": "יהודית חשין",
+    "address": "דרך הציונות 16",
+    "phone": "050-7282137"
+  },
+  {
+    "id": 41,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "חן",
+    "contact_name": "אירינה רוט",
+    "address": "השריון 57",
+    "phone": "053-2773003"
+  },
+  {
+    "id": 42,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "אפיקים - חוחית",
+    "contact_name": "מזי אסא",
+    "address": "ברקן 58",
+    "phone": "050-8337643"
+  },
+  {
+    "id": 43,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מעון גרונר",
+    "contact_name": "שריק שטאובר",
+    "address": "גרונר דב 1",
+    "phone": "054-6500065"
+  },
+  {
+    "id": 44,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "עצמאות",
+    "contact_name": "שרה חג'בי",
+    "address": "העצמאות 29",
+    "phone": "054-6500065"
+  },
+  {
+    "id": 45,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "טופז",
+    "contact_name": "נצחיה חמי",
+    "address": "גלוסקא 20",
+    "phone": "054-6500065"
+  },
+  {
+    "id": 46,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "פסגות אמונה",
+    "contact_name": "אורי מימון",
+    "address": "יוסי בנאי 65",
+    "phone": "054-7448589"
+  },
+  {
+    "id": 47,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מעון תמר",
+    "contact_name": "קרן אהרוני",
+    "address": "נילס בוהר 9",
+    "phone": "053-3829217"
+  },
+  {
+    "id": 48,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מעון צליל",
+    "contact_name": "רחל חמי",
+    "address": "גרטי קורי 19",
+    "phone": "053-3829108"
+  },
+  {
+    "id": 49,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מעון מיץ פטל",
+    "contact_name": "דורין כתבי",
+    "address": "חיים הרצוג 27",
+    "phone": "053-3829212"
+  },
+  {
+    "id": 50,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הנסיך הקטן",
+    "contact_name": "מור מרים אחרק",
+    "address": "יפה ירקוני 11",
+    "phone": "053-3829218"
+  },
+  {
+    "id": 51,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "תינוקיה 5 כוכבים",
+    "contact_name": "מורן וונה-זיו",
+    "address": "ברקן 1",
+    "phone": "050-6444144"
+  },
+  {
+    "id": 52,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן צוף",
+    "contact_name": "אופיר פרחי",
+    "address": "שקד 19",
+    "phone": "052-5299982"
+  },
+  {
+    "id": 53,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "Babies",
+    "contact_name": "ליאורה רונן",
+    "address": "אילות 9",
+    "phone": "054-4936999"
+  },
+  {
+    "id": 54,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הבית של מירית",
+    "contact_name": "דגנית מרגונינסקי",
+    "address": "שבזי 86",
+    "phone": "052-3594063"
+  },
+  {
+    "id": 55,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הבית של כרמית",
+    "contact_name": "כרמית עמרן",
+    "address": "יהושע בן נון 54",
+    "phone": "054-5612233"
+  },
+  {
+    "id": 56,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הילדים של רויטל",
+    "contact_name": "רויטל דפני",
+    "address": "בת שבע דה רוטשילד 4",
+    "phone": "054-2499333"
+  },
+  {
+    "id": 57,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "שביל הדבש - ים",
+    "contact_name": "איילת סיאני",
+    "address": "מעיין 17",
+    "phone": "050-4996767"
+  },
+  {
+    "id": 58,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "MinimaMama",
+    "contact_name": "טל מינס פינצוק",
+    "address": "ערבה 17",
+    "phone": "054-5993322"
+  },
+  {
+    "id": 59,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "שביל הדבש - אגם",
+    "contact_name": "איילת סיאני",
+    "address": "מעיין 17",
+    "phone": "050-4996767"
+  },
+  {
+    "id": 60,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגן של מריה",
+    "contact_name": "מריה רבני",
+    "address": "אלברט איינשטיין 15",
+    "phone": "054-2427957"
+  },
+  {
+    "id": 61,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הילדים של רויטל (סניף 2)",
+    "contact_name": "רויטל דפני",
+    "address": "מבצע חזיר 5",
+    "phone": "054-2499333"
+  },
+  {
+    "id": 62,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן ענתי",
+    "contact_name": "ענת שמצ'י",
+    "address": "אפק 9",
+    "phone": "052-2216634"
+  },
+  {
+    "id": 63,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן גלית",
+    "contact_name": "גלית דרורי",
+    "address": "אצ\"ל 3",
+    "phone": "052-3315557"
+  },
+  {
+    "id": 64,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "המשפחתון של שלי",
+    "contact_name": "שלי אצמון",
+    "address": "אפק 97",
+    "phone": "052-5442504"
+  },
+  {
+    "id": 65,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן שמלהה (סניף 2)",
+    "contact_name": "מור עידן",
+    "address": "אביטל 12",
+    "phone": "053-2221157"
+  },
+  {
+    "id": 66,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן לי",
+    "contact_name": "רינת אפרת",
+    "address": "צה\"ל 107",
+    "phone": "054-5859845"
+  },
+  {
+    "id": 67,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "בית חלומותיי",
+    "contact_name": "רחל קרן בן חיים",
+    "address": "הנביאים 4",
+    "phone": "058-7630199"
+  },
+  {
+    "id": 68,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "בית חלומותיי (סניף 2)",
+    "contact_name": "שרית טביל",
+    "address": "הרש\"ש 9",
+    "phone": "058-7177129"
+  },
+  {
+    "id": 69,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "להתפתח עם מיה",
+    "contact_name": "מיה יהודה",
+    "address": "גרטי קורי 4",
+    "phone": "052-5282523"
+  },
+  {
+    "id": 70,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "אור זרוע",
+    "contact_name": "אילנה בשרי",
+    "address": "יחיא יצחק הלוי 20",
+    "phone": "054-7010678"
+  },
+  {
+    "id": 71,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגן של כרמית",
+    "contact_name": "כרמית מסורי",
+    "address": "מלכי ישראל 46",
+    "phone": "054-2004915"
+  },
+  {
+    "id": 72,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן טולי",
+    "contact_name": "סמר מדעי",
+    "address": "מלכי ישראל 65",
+    "phone": "054-5218124"
+  },
+  {
+    "id": 73,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "קשת",
+    "contact_name": "אילנה אלונה מלמוד",
+    "address": "לאה גולדברג 5",
+    "phone": "052-3389433"
+  },
+  {
+    "id": 74,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "גן יהודית",
+    "contact_name": "יהודית רון",
+    "address": "הרש\"ש 6",
+    "phone": "050-7359953"
+  },
+  {
+    "id": 75,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "הגן של יוקי",
+    "contact_name": "יוקי זוהר",
+    "address": "הדרור 18",
+    "phone": "050-7419197"
+  },
+  {
+    "id": 76,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "פעוטון אורה",
+    "contact_name": "אורה טל",
+    "address": "הרש\"ש 25",
+    "phone": "052-8304228"
+  },
+  {
+    "id": 77,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "פיצקלה",
+    "contact_name": "ענבר גיבלי",
+    "address": "יהודה הלוי 14",
+    "phone": "052-6460089"
+  },
+  {
+    "id": 78,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "חלומות של קטנטנים",
+    "contact_name": "קרין יהב",
+    "address": "מעיין 5",
+    "phone": "054-7472103"
+  },
+  {
+    "id": 79,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "מעון קטקטים",
+    "contact_name": "ריקי אדוארד",
+    "address": "שילה 67",
+    "phone": "052-3841415"
+  },
+  {
+    "id": 80,
+    "priority": "A",
+    "city": "ראש העין",
+    "garden_name": "בית חלומותיי (חדש)",
+    "contact_name": "רחל בן חיים",
+    "address": "גרטי קורי 6",
+    "phone": "058-7630199"
+  },
+  {
+    "id": 81,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן ילדודיס בכפר",
+    "contact_name": "יאיר פרומן",
+    "address": "הלה 16",
+    "phone": "050-4346494"
+  },
+  {
+    "id": 82,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן יעל",
+    "contact_name": "נועה",
+    "address": "חבצלת השרון 13",
+    "phone": "050-8565566"
+  },
+  {
+    "id": 83,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן לענין",
+    "contact_name": "יעל",
+    "address": "גולומב 45",
+    "phone": "052-6559292"
+  },
+  {
+    "id": 84,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "משפחתון זויה",
+    "contact_name": "זויה",
+    "address": "הצבעוני",
+    "phone": "052-6325441"
+  },
+  {
+    "id": 85,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "מעון חב\"ד כפר סבא",
+    "contact_name": "חן בן חיים",
+    "address": "רופין 32",
+    "phone": "050-2698480"
+  },
+  {
+    "id": 86,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "נוטים חלומות",
+    "contact_name": "ענבל",
+    "address": "יציאת אירופה 24",
+    "phone": "054-7758590"
+  },
+  {
+    "id": 87,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "הבית הקסום",
+    "contact_name": "אתי בן טוב",
+    "address": "אלעזר דוד 6",
+    "phone": "054-5601847"
+  },
+  {
+    "id": 88,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "אנדנדינו",
+    "contact_name": "סימונה דנינו",
+    "address": "גולומב 61",
+    "phone": "054-2436690"
+  },
+  {
+    "id": 89,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן איילת",
+    "contact_name": "איילת ירון",
+    "address": "בלום ליאון 6",
+    "phone": "052-4227114"
+  },
+  {
+    "id": 90,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן אמא אוזה",
+    "contact_name": "חנה",
+    "address": "הגליל 57",
+    "phone": "050-8774152"
+  },
+  {
+    "id": 91,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן גילה",
+    "contact_name": "גילה",
+    "address": "רחל המשוררת 8",
+    "phone": "052-3221175"
+  },
+  {
+    "id": 92,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן דקלה",
+    "contact_name": "דקלה",
+    "address": "רחל המשוררת 19",
+    "phone": "054-4421245"
+  },
+  {
+    "id": 93,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן שוש",
+    "contact_name": "שרית",
+    "address": "הדר 3",
+    "phone": "052-6693445"
+  },
+  {
+    "id": 94,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "הארץ הקטנה",
+    "contact_name": "אולגה",
+    "address": "הגליל 57",
+    "phone": "054-6498352"
+  },
+  {
+    "id": 95,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "הבית של ורוניקה",
+    "contact_name": "ורוניקה",
+    "address": "סוקולוב 15",
+    "phone": "052-5723388"
+  },
+  {
+    "id": 96,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "המשפחתון של חורצ'י",
+    "contact_name": "חורצ'י",
+    "address": "אימבר 8",
+    "phone": "054-6520501"
+  },
+  {
+    "id": 97,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "חיבוקלה",
+    "contact_name": "אלה",
+    "address": "אושישקין 23",
+    "phone": "054-4300158"
+  },
+  {
+    "id": 98,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "פעוטון קטנטנים",
+    "contact_name": "ויקטור",
+    "address": "עציון 23",
+    "phone": "054-6448686"
+  },
+  {
+    "id": 99,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "קטקטים",
+    "contact_name": "אילנה",
+    "address": "בלפור 7",
+    "phone": "052-2594067"
+  },
+  {
+    "id": 100,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "שני גינת רייבי",
+    "contact_name": "שני",
+    "address": "nan",
+    "phone": "054-6470575"
+  },
+  {
+    "id": 101,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "מעון חב\"ד גן הגאולה",
+    "contact_name": "דינה ימיני",
+    "address": "הדר 4",
+    "phone": "054-5869542"
+  },
+  {
+    "id": 102,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "מחוץ לקופסה",
+    "contact_name": "יובל",
+    "address": "כצנלסון 44",
+    "phone": "054-5486744"
+  },
+  {
+    "id": 103,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "קרן שמש",
+    "contact_name": "אסטלה",
+    "address": "סוקולוב 27",
+    "phone": "050-6757016"
+  },
+  {
+    "id": 104,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "המשפחתון של טולי",
+    "contact_name": "טולי",
+    "address": "בר אילן 5",
+    "phone": "052-6407774"
+  },
+  {
+    "id": 105,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "בית מרי פופינס",
+    "contact_name": "מיכל",
+    "address": "חטיבת גולני 4",
+    "phone": "054-3306777"
+  },
+  {
+    "id": 106,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן מתנות קטנות",
+    "contact_name": "חן דקל",
+    "address": "האילנות 20",
+    "phone": "054-3322848"
+  },
+  {
+    "id": 107,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן פרפר נחמד",
+    "contact_name": "מורן",
+    "address": "דוד המלך 3",
+    "phone": "052-3482095"
+  },
+  {
+    "id": 108,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן החלומות",
+    "contact_name": "בן ולדיאור",
+    "address": "שאול המלך 5",
+    "phone": "052-5697788"
+  },
+  {
+    "id": 109,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "הגנצ'יק של אתי",
+    "contact_name": "אתי",
+    "address": "הרימון 14",
+    "phone": "052-8488766"
+  },
+  {
+    "id": 110,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "המשפחתון בן זאב",
+    "contact_name": "אביטל",
+    "address": "גד הנביא 23ב",
+    "phone": "052-5375011"
+  },
+  {
+    "id": 111,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן יצחק",
+    "contact_name": "שרה אליאס",
+    "address": "דניאל 10",
+    "phone": "054-9947405"
+  },
+  {
+    "id": 112,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן דוריס",
+    "contact_name": "נגה קורן",
+    "address": "האילנות 6",
+    "phone": "054-7477114"
+  },
+  {
+    "id": 113,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן נגה (הזית)",
+    "contact_name": "אוריה קורן",
+    "address": "הזית",
+    "phone": "054-4600256"
+  },
+  {
+    "id": 114,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן נגה (התאנה)",
+    "contact_name": "נגה קורן",
+    "address": "התאנה 3",
+    "phone": "054-7477114"
+  },
+  {
+    "id": 115,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "איצטרובל",
+    "contact_name": "שירן",
+    "address": "צה\"ל 11",
+    "phone": "055-6632445"
+  },
+  {
+    "id": 116,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "הגן של מיכלי",
+    "contact_name": "מיכל לב שמיע",
+    "address": "אנג'ל 25",
+    "phone": "052-3421107"
+  },
+  {
+    "id": 117,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן שמש",
+    "contact_name": "אלינה",
+    "address": "ישראל ישעיהו 5ב",
+    "phone": "054-7573555"
+  },
+  {
+    "id": 118,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "בא-לי גן",
+    "contact_name": "ליטל מיזן",
+    "address": "קורצ'אק 10",
+    "phone": "050-7926059"
+  },
+  {
+    "id": 119,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן דבש",
+    "contact_name": "אדריאנה",
+    "address": "שיפר 9א",
+    "phone": "052-4422430"
+  },
+  {
+    "id": 120,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן מימוס",
+    "contact_name": "גבי",
+    "address": "זייטלין 24",
+    "phone": "052-4535919"
+  },
+  {
+    "id": 121,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "המקום שבלב",
+    "contact_name": "שירי",
+    "address": "נטר קרל 6",
+    "phone": "054-7559500"
+  },
+  {
+    "id": 122,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "ילדות קסומה",
+    "contact_name": "אודיה",
+    "address": "משה סנה 4",
+    "phone": "054-6242623"
+  },
+  {
+    "id": 123,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "משפחתון קרינה",
+    "contact_name": "קרינה",
+    "address": "אנצו סיריני 2",
+    "phone": "054-9475406"
+  },
+  {
+    "id": 124,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גנילידים",
+    "contact_name": "מיטל בלס",
+    "address": "ישראל ישעיהו 3",
+    "phone": "050-8195566"
+  },
+  {
+    "id": 125,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "גן שלנו",
+    "contact_name": "שרון",
+    "address": "טשרניחובסקי 40",
+    "phone": "050-6820333"
+  },
+  {
+    "id": 126,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "הגן של קוטי",
+    "contact_name": "קוטי",
+    "address": "טשרניחובסקי 95",
+    "phone": "050-3283211"
+  },
+  {
+    "id": 127,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "פעוטוני צהרוני",
+    "contact_name": "שולה",
+    "address": "טשרניחובסקי 97",
+    "phone": "050-4807781"
+  },
+  {
+    "id": 128,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "המשפחתון של סילביה",
+    "contact_name": "סילביה",
+    "address": "דוד זהרי 6",
+    "phone": "053-7372408"
+  },
+  {
+    "id": 129,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "ויצו מעון דובדבן",
+    "contact_name": "רחלה עזולאי",
+    "address": "מבצע יונתן 11",
+    "phone": "050-9586280"
+  },
+  {
+    "id": 130,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "נעמת הכרמל",
+    "contact_name": "שוש",
+    "address": "הכרמל 66",
+    "phone": "053-9230981"
+  },
+  {
+    "id": 131,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "נעמת ספיר",
+    "contact_name": "ריקי ספיר",
+    "address": "גלעד זאב 4",
+    "phone": "052-8484849"
+  },
+  {
+    "id": 132,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "ילדות בכפר - הדרים",
+    "contact_name": "אילנית",
+    "address": "דרך קדומים",
+    "phone": "050-6678313"
+  },
+  {
+    "id": 133,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "ילדות בכפר מעון 60",
+    "contact_name": "רות",
+    "address": "מאיר אריאל 16",
+    "phone": "052-9159279"
+  },
+  {
+    "id": 134,
+    "priority": "B",
+    "city": "כפר סבא",
+    "garden_name": "אמונה דקל",
+    "contact_name": "בן",
+    "address": "דיין משה 9",
+    "phone": "052-3866819"
+  },
+  {
+    "id": 135,
+    "priority": "B",
+    "city": "קרית אונו",
+    "garden_name": "גן בבושקה",
+    "contact_name": "nan",
+    "address": "ההדר 1",
+    "phone": "050-7724737"
+  },
+  {
+    "id": 136,
+    "priority": "B",
+    "city": "קרית אונו",
+    "garden_name": "גן חיפושית",
+    "contact_name": "nan",
+    "address": "סוקולוב 9",
+    "phone": "054-6378056"
+  },
+  {
+    "id": 137,
+    "priority": "B",
+    "city": "קרית אונו",
+    "garden_name": "גן ירוק בטבע",
+    "contact_name": "דפנה בלזר",
+    "address": "הרצל 46",
+    "phone": "054-2327030"
+  },
+  {
+    "id": 138,
+    "priority": "B",
+    "city": "קרית אונו",
+    "garden_name": "הגנון של ארנון",
+    "contact_name": "טלי",
+    "address": "ירושלים 30",
+    "phone": "050-7554433"
+  },
+  {
+    "id": 139,
+    "priority": "B",
+    "city": "קרית אונו",
+    "garden_name": "גן ממלכת הלבבות",
+    "contact_name": "ילנה אלחדף",
+    "address": "שטרן 72",
+    "phone": "052-5600381"
+  },
+  {
+    "id": 140,
+    "priority": "B",
+    "city": "רמת גן",
+    "garden_name": "הגן של אורטלי",
+    "contact_name": "אורטל ואקנין",
+    "address": "טרומן 29",
+    "phone": "052-7452603"
+  },
+  {
+    "id": 141,
+    "priority": "B",
+    "city": "רמת גן",
+    "garden_name": "גן אומנויות נילי",
+    "contact_name": "nan",
+    "address": "תל חי 68",
+    "phone": "052-8446116"
+  },
+  {
+    "id": 142,
+    "priority": "B",
+    "city": "רמת גן",
+    "garden_name": "הקטקטים של עדית",
+    "contact_name": "עדית קצב",
+    "address": "אלונים 9",
+    "phone": "054-8120092"
+  },
+  {
+    "id": 143,
+    "priority": "B",
+    "city": "גבעתיים",
+    "garden_name": "גן אחר",
+    "contact_name": "עודליה",
+    "address": "ריינס 38",
+    "phone": "054-4819667"
+  },
+  {
+    "id": 144,
+    "priority": "B",
+    "city": "גבעתיים",
+    "garden_name": "גן גורים",
+    "contact_name": "nan",
+    "address": "הצנחנים 27",
+    "phone": "052-2739819"
+  },
+  {
+    "id": 145,
+    "priority": "B",
+    "city": "גבעתיים",
+    "garden_name": "המשפחתון שלנו",
+    "contact_name": "לאה",
+    "address": "גבעתיים",
+    "phone": "052-4560873"
+  },
+  {
+    "id": 146,
+    "priority": "B",
+    "city": "גבעתיים",
+    "garden_name": "המשפחתון של יפעת",
+    "contact_name": "יפעת",
+    "address": "טייבר 59",
+    "phone": "054-9718988"
+  },
+  {
+    "id": 147,
+    "priority": "B",
+    "city": "גבעתיים",
+    "garden_name": "המשפחתון של ענת",
+    "contact_name": "ענת",
+    "address": "לכיש 11",
+    "phone": "052-5393375"
+  },
+  {
+    "id": 148,
+    "priority": "A",
+    "city": "יהוד",
+    "garden_name": "גן מירילנד",
+    "contact_name": "מירי קופרשטוק",
+    "address": "צוקרמן 21",
+    "phone": "054-6686663"
+  },
+  {
+    "id": 149,
+    "priority": "B",
+    "city": "שוהם",
+    "garden_name": "גן-מעון חב\"ד",
+    "contact_name": "הרב גרינברג",
+    "address": "תמר 12",
+    "phone": "054-5496372"
+  },
+  {
+    "id": 150,
+    "priority": "B",
+    "city": "שוהם",
+    "garden_name": "גן-מעון חב\"ד (שרה)",
+    "contact_name": "שרה",
+    "address": "תמר 12",
+    "phone": "052-7020097"
+  }
+]
+;
+
+const STATUSES = {
+  'new':            { label: 'טרם נפנה',        class: 'status-new',            color: '#9ca3af', order: 0 },
+  'attempt1':       { label: 'ניסיון 1 - לא ענה', class: 'status-attempt',       color: '#f59e0b', order: 1 },
+  'attempt2':       { label: 'ניסיון 2 - לא ענה', class: 'status-attempt',       color: '#f59e0b', order: 2 },
+  'attempt3':       { label: 'ניסיון 3 - לא ענה', class: 'status-attempt',       color: '#ef4444', order: 3 },
+  'interested':     { label: 'מעוניין',          class: 'status-interested',     color: '#16a34a', order: 4 },
+  'not_interested': { label: 'לא מעוניין',       class: 'status-not-interested', color: '#dc2626', order: 5 },
+  'callback':       { label: 'לחזור אליו',      class: 'status-callback',       color: '#2563eb', order: 6 },
+  'quote_sent':     { label: 'נשלחה הצעת מחיר',  class: 'status-quote',          color: '#9333ea', order: 7 },
+  'meeting_set':    { label: 'נקבעה פגישה',      class: 'status-meeting',        color: '#ec4899', order: 8 },
+  'meeting_done':   { label: 'בוצעה פגישה',      class: 'status-meeting-done',   color: '#0891b2', order: 9 },
+  'first_order':    { label: 'הזמנה ראשונה!',    class: 'status-order',          color: '#065f46', order: 10 },
+  'not_relevant':   { label: 'לא רלוונטי',       class: 'status-not-relevant',   color: '#d1d5db', order: 11 },
+};
+
+const CALL_RESULTS = [
+  { value: 'no_answer',       label: 'לא ענה',        class: 'orange' },
+  { value: 'interested',      label: 'מעוניין!',      class: 'green' },
+  { value: 'not_interested',  label: 'לא מעוניין',    class: 'red' },
+  { value: 'callback',        label: 'לחזור אליו',   class: '' },
+  { value: 'wrong_number',    label: 'מספר שגוי',     class: 'red' },
+  { value: 'meeting_set',     label: 'נקבע פגישה',    class: 'green' },
+];
+
+let leads = [];
+let currentSort = { field: 'id', dir: 'asc' };
+let activeDialerLead = null;
+let pipelineFilter = null;
+
+// ============ INIT ============
+function init() {
+  loadData();
+  populateFilters();
+  renderDashboard();
+  renderLeadsTable();
+  setupTabs();
+  updateBadges();
+}
+
+function loadData() {
+  const saved = localStorage.getItem('ymarket_crm_leads');
+  if (saved) {
+    leads = JSON.parse(saved);
+    // Merge any new leads from initial data
+    const existingIds = new Set(leads.map(l => l.id));
+    INITIAL_LEADS.forEach(l => {
+      if (!existingIds.has(l.id)) {
+        leads.push({ ...l, status: 'new', attempts: 0, log: [], notes: '', scheduled: null });
+      }
+    });
+  } else {
+    leads = INITIAL_LEADS.map(l => ({
+      ...l,
+      status: 'new',
+      attempts: 0,
+      log: [],
+      notes: '',
+      scheduled: null
+    }));
+  }
+  saveData();
+}
+
+function saveData() {
+  localStorage.setItem('ymarket_crm_leads', JSON.stringify(leads));
+}
+
+// ============ TABS ============
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('sec-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'dialer') renderDialer();
+      if (tab.dataset.tab === 'pipeline') renderPipeline();
+      if (tab.dataset.tab === 'tasks') renderTasks();
+      if (tab.dataset.tab === 'dashboard') renderDashboard();
+      if (tab.dataset.tab === 'leads') renderLeadsTable();
+    });
+  });
+}
+
+// ============ DASHBOARD ============
+function renderDashboard() {
+  const total = leads.length;
+  const contacted = leads.filter(l => l.status !== 'new').length;
+  const interested = leads.filter(l => ['interested','quote_sent','meeting_set','meeting_done','first_order'].includes(l.status)).length;
+  const orders = leads.filter(l => l.status === 'first_order').length;
+  const callbacks = leads.filter(l => l.status === 'callback').length;
+  const todayScheduled = leads.filter(l => l.scheduled && l.scheduled.split('T')[0] === new Date().toISOString().split('T')[0]).length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card blue"><div class="label">סה"כ לידים</div><div class="value">${total}</div><div class="sub">8 ערים</div></div>
+    <div class="stat-card orange"><div class="label">נפנו</div><div class="value">${contacted}</div><div class="sub">${Math.round(contacted/total*100)}% מהסה"כ</div></div>
+    <div class="stat-card green"><div class="label">מעוניינים</div><div class="value">${interested}</div><div class="sub">${contacted?Math.round(interested/contacted*100):0}% מהנפנו</div></div>
+    <div class="stat-card purple"><div class="label">הזמנות</div><div class="value">${orders}</div><div class="sub">${interested?Math.round(orders/interested*100):0}% conversion</div></div>
+    <div class="stat-card red"><div class="label">לחזור אליהם</div><div class="value">${callbacks}</div><div class="sub">דורש טיפול</div></div>
+    <div class="stat-card"><div class="label">משימות היום</div><div class="value">${todayScheduled}</div><div class="sub">חזרות מתוזמנות</div></div>
+  `;
+
+  // Pipeline overview
+  const stages = Object.entries(STATUSES);
+  const pipeHtml = stages.map(([key, s]) => {
+    const count = leads.filter(l => l.status === key).length;
+    const pct = Math.round(count / total * 100);
+    return `<div class="pipeline-stage ${pipelineFilter===key?'active-filter':''}" onclick="togglePipelineFilter('${key}')" style="border-top: 3px solid ${s.color}">
+      <div class="stage-name">${s.label}</div>
+      <div class="stage-count" style="color:${s.color}">${count}</div>
+      <div class="stage-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  document.getElementById('pipelineOverview').innerHTML = pipeHtml;
+
+  // City chart
+  const cities = {};
+  leads.forEach(l => { cities[l.city] = (cities[l.city]||0)+1; });
+  const sortedCities = Object.entries(cities).sort((a,b) => b[1]-a[1]);
+  const maxCity = sortedCities[0]?.[1] || 1;
+  const colors = ['#2563eb','#16a34a','#f59e0b','#dc2626','#9333ea','#ec4899','#0891b2','#f97316'];
+  document.getElementById('cityChart').innerHTML = sortedCities.map(([city, count], i) => `
+    <div class="bar-row">
+      <div class="bar-label">${city}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${count/maxCity*100}%;background:${colors[i%colors.length]}">${count}</div></div>
+    </div>
+  `).join('');
+
+  // Weekly chart - last 7 days activity
+  const now = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    const dayName = d.toLocaleDateString('he-IL',{weekday:'short'});
+    let count = 0;
+    leads.forEach(l => { l.log.forEach(log => { if(log.time.startsWith(ds)) count++; }); });
+    days.push({ label: dayName + ' ' + d.getDate(), count });
+  }
+  const maxDay = Math.max(...days.map(d=>d.count), 1);
+  document.getElementById('weeklyChart').innerHTML = days.map(d => `
+    <div class="bar-row">
+      <div class="bar-label">${d.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${d.count/maxDay*100}%;background:var(--primary)">${d.count||''}</div></div>
+    </div>
+  `).join('');
+}
+
+function togglePipelineFilter(status) {
+  if (pipelineFilter === status) {
+    pipelineFilter = null;
+  } else {
+    pipelineFilter = status;
+  }
+  renderDashboard();
+  // Switch to leads tab with filter
+  if (pipelineFilter) {
+    document.getElementById('statusFilter').value = pipelineFilter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelector('[data-tab="leads"]').classList.add('active');
+    document.getElementById('sec-leads').classList.add('active');
+    filterLeads();
+  }
+}
+
+// ============ LEADS TABLE ============
+function populateFilters() {
+  const cities = [...new Set(leads.map(l=>l.city))].sort();
+  const cityOpts = '<option value="">הכל</option>' + cities.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('cityFilter').innerHTML = cityOpts;
+  document.getElementById('dialerCityFilter').innerHTML = cityOpts;
+
+  const statusOpts = '<option value="">הכל</option>' + Object.entries(STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  document.getElementById('statusFilter').innerHTML = statusOpts;
+}
+
+function filterLeads() {
+  renderLeadsTable();
+}
+
+function getFilteredLeads() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const city = document.getElementById('cityFilter')?.value || '';
+  const priority = document.getElementById('priorityFilter')?.value || '';
+  const status = document.getElementById('statusFilter')?.value || '';
+
+  return leads.filter(l => {
+    if (search && !(l.garden_name+l.contact_name+l.city+l.phone).toLowerCase().includes(search)) return false;
+    if (city && l.city !== city) return false;
+    if (priority && l.priority !== priority) return false;
+    if (status && l.status !== status) return false;
+    return true;
+  });
+}
+
+function sortLeads(field) {
+  if (currentSort.field === field) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort = { field, dir: 'asc' };
+  }
+  renderLeadsTable();
+}
+
+function renderLeadsTable() {
+  let filtered = getFilteredLeads();
+
+  // Sort
+  const { field, dir } = currentSort;
+  filtered.sort((a, b) => {
+    let va = field === '#' ? a.id : (a[field] || '');
+    let vb = field === '#' ? b.id : (b[field] || '');
+    if (field === 'status') { va = STATUSES[va]?.order||0; vb = STATUSES[vb]?.order||0; }
+    if (typeof va === 'number') return dir==='asc' ? va-vb : vb-va;
+    return dir==='asc' ? String(va).localeCompare(String(vb),'he') : String(vb).localeCompare(String(va),'he');
+  });
+
+  const tbody = document.getElementById('leadsTableBody');
+  tbody.innerHTML = filtered.map(l => {
+    const s = STATUSES[l.status] || STATUSES['new'];
+    const lastLog = l.log.length ? l.log[l.log.length-1] : null;
+    const lastAction = lastLog ? formatDate(lastLog.time) : '-';
+    return `<tr class="priority-${l.priority.toLowerCase()}" onclick="openLeadModal(${l.id})">
+      <td>${l.id}</td>
+      <td><span class="priority-badge priority-${l.priority.toLowerCase()}">${l.priority}</span></td>
+      <td>${l.city}</td>
+      <td><strong>${l.garden_name}</strong></td>
+      <td>${l.contact_name || '-'}</td>
+      <td style="direction:ltr;text-align:right"><a href="tel:${l.phone.replace(/-/g,'')}" onclick="event.stopPropagation()" style="color:var(--primary);text-decoration:none">${l.phone}</a></td>
+      <td><span class="status-badge ${s.class}">${s.label}</span></td>
+      <td>${l.attempts || 0}</td>
+      <td style="font-size:12px;color:var(--gray-500)">${lastAction}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="call-btn" onclick="startCall(${l.id})">&#x1F4DE;</button>
+        <button class="call-btn wa-btn" onclick="openWhatsApp(${l.id})">WA</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('leadsBadge').textContent = filtered.length;
+}
+
+// ============ DIALER ============
+function renderDialer() {
+  filterDialerQueue();
+}
+
+function filterDialerQueue() {
+  const city = document.getElementById('dialerCityFilter')?.value || '';
+  const priority = document.getElementById('dialerPriorityFilter')?.value || '';
+  const status = document.getElementById('dialerStatusFilter')?.value || '';
+
+  // Default: show leads that need calling
+  const callableStatuses = ['new','attempt1','attempt2','callback'];
+  let queue = leads.filter(l => {
+    if (city && l.city !== city) return false;
+    if (priority && l.priority !== priority) return false;
+    if (status) {
+      if (l.status !== status) return false;
+    } else {
+      if (!callableStatuses.includes(l.status)) return false;
+    }
+    return true;
+  });
+
+  // Sort: A first, then by status order, then by ID
+  queue.sort((a,b) => {
+    if (a.priority !== b.priority) return a.priority === 'A' ? -1 : 1;
+    const sa = STATUSES[a.status]?.order || 0;
+    const sb = STATUSES[b.status]?.order || 0;
+    if (sa !== sb) return sa - sb;
+    return a.id - b.id;
+  });
+
+  document.getElementById('queueCount').textContent = queue.length + ' לידים';
+  document.getElementById('dialerBadge').textContent = queue.length;
+
+  const list = document.getElementById('dialerQueueList');
+  list.innerHTML = queue.map(l => {
+    const s = STATUSES[l.status] || STATUSES['new'];
+    return `<div class="queue-item ${activeDialerLead===l.id?'active':''}" onclick="selectDialerLead(${l.id})">
+      <span class="priority-badge priority-${l.priority.toLowerCase()}">${l.priority}</span>
+      <div class="qi-info">
+        <div class="qi-name">${l.contact_name || l.garden_name}</div>
+        <div class="qi-garden">${l.garden_name}</div>
+        <div class="qi-city">${l.city} &middot; <span class="status-badge ${s.class}" style="font-size:10px;padding:2px 6px">${s.label}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (!queue.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x2705;</div><p>אין לידים בתור!</p></div>';
+  }
+}
+
+function selectDialerLead(id) {
+  activeDialerLead = id;
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+
+  filterDialerQueue(); // re-render to highlight
+
+  const s = STATUSES[l.status] || STATUSES['new'];
+  const phoneClean = l.phone.replace(/-/g, '');
+
+  document.getElementById('dialerCard').innerHTML = `
+    <div class="dialer-card fade-in">
+      <div class="dc-header">
+        <div class="dc-name">${l.contact_name || '-'}</div>
+        <div class="dc-garden">${l.garden_name}</div>
+        <div class="dc-city">${l.city} &middot; ${l.address} &middot; <span class="status-badge ${s.class}">${s.label}</span></div>
+        <div class="dc-phone">${l.phone}</div>
+      </div>
+      <div class="dc-actions">
+        <button class="big-call" onclick="window.open('tel:${phoneClean}')">&#x1F4DE; חייג עכשיו</button>
+        <button class="big-wa" onclick="openWhatsApp(${l.id})">&#x1F4AC; WhatsApp</button>
+      </div>
+      <div class="dc-result">
+        <h4>&#x1F4DD; תוצאת השיחה:</h4>
+        <div class="result-options" id="resultOptions">
+          ${CALL_RESULTS.map(r => `<div class="result-opt ${r.class}" data-value="${r.value}" onclick="selectResult(this,'${r.value}')">${r.label}</div>`).join('')}
+        </div>
+        <textarea class="dc-note" id="callNote" placeholder="הערות על השיחה..."></textarea>
+        <div class="scheduler-row" id="schedulerRow" style="display:none">
+          <label>תזמן חזרה:</label>
+          <input type="date" id="schedDate" value="${new Date().toISOString().split('T')[0]}">
+          <input type="time" id="schedTime" value="10:00">
+        </div>
+        <button class="dc-save" id="saveCallBtn" onclick="saveCallResult(${l.id})" disabled>&#x2705; שמור והמשך לבא</button>
+        <button class="dc-next" onclick="skipToNext(${l.id})">&#x23E9; דלג לבא</button>
+      </div>
+      ${l.log.length ? `
+      <div class="call-log" style="margin-top:20px">
+        <h4>&#x1F4C3; היסטוריה:</h4>
+        ${l.log.slice().reverse().slice(0,5).map(log => `
+          <div class="log-entry">
+            <div class="log-icon ${log.type||'call'}">&#x1F4DE;</div>
+            <div class="log-content">
+              <div class="log-title">${log.action || ''}</div>
+              <div class="log-time">${formatDate(log.time)}</div>
+              ${log.note ? `<div class="log-note">${log.note}</div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>` : ''}
+    </div>
+  `;
+}
+
+let selectedResult = null;
+function selectResult(el, value) {
+  document.querySelectorAll('.result-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedResult = value;
+  document.getElementById('saveCallBtn').disabled = false;
+  document.getElementById('schedulerRow').style.display = (value === 'callback' || value === 'meeting_set') ? 'flex' : 'none';
+}
+
+function saveCallResult(id) {
+  if (!selectedResult) return;
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+
+  const note = document.getElementById('callNote')?.value || '';
+  const now = new Date().toISOString();
+
+  l.attempts = (l.attempts || 0) + 1;
+
+  // Update status based on result
+  switch(selectedResult) {
+    case 'no_answer':
+      if (l.attempts >= 3) l.status = 'attempt3';
+      else if (l.attempts >= 2) l.status = 'attempt2';
+      else l.status = 'attempt1';
+      break;
+    case 'interested':
+      l.status = 'interested';
+      break;
+    case 'not_interested':
+      l.status = 'not_interested';
+      break;
+    case 'callback':
+      l.status = 'callback';
+      const sd = document.getElementById('schedDate')?.value;
+      const st = document.getElementById('schedTime')?.value;
+      if (sd && st) l.scheduled = sd + 'T' + st;
+      break;
+    case 'wrong_number':
+      l.status = 'not_relevant';
+      break;
+    case 'meeting_set':
+      l.status = 'meeting_set';
+      const md = document.getElementById('schedDate')?.value;
+      const mt = document.getElementById('schedTime')?.value;
+      if (md && mt) l.scheduled = md + 'T' + mt;
+      break;
+  }
+
+  // Add log
+  l.log.push({
+    type: 'call',
+    action: CALL_RESULTS.find(r=>r.value===selectedResult)?.label || selectedResult,
+    time: now,
+    note: note,
+    result: selectedResult
+  });
+
+  selectedResult = null;
+  saveData();
+
+  // Move to next
+  skipToNext(id);
+  updateBadges();
+}
+
+function skipToNext(currentId) {
+  const queue = getDialerQueue();
+  const idx = queue.findIndex(l => l.id === currentId);
+  if (idx >= 0 && idx < queue.length - 1) {
+    selectDialerLead(queue[idx + 1].id);
+  } else if (queue.length > 0) {
+    selectDialerLead(queue[0].id);
+  } else {
+    filterDialerQueue();
+    document.getElementById('dialerCard').innerHTML = '<div class="empty-state"><div class="empty-icon">&#x2705;</div><p>סיימת את כל הלידים בתור!</p></div>';
+  }
+}
+
+function getDialerQueue() {
+  const city = document.getElementById('dialerCityFilter')?.value || '';
+  const priority = document.getElementById('dialerPriorityFilter')?.value || '';
+  const status = document.getElementById('dialerStatusFilter')?.value || '';
+  const callableStatuses = ['new','attempt1','attempt2','callback'];
+  return leads.filter(l => {
+    if (city && l.city !== city) return false;
+    if (priority && l.priority !== priority) return false;
+    if (status) { if (l.status !== status) return false; }
+    else { if (!callableStatuses.includes(l.status)) return false; }
+    return true;
+  }).sort((a,b) => {
+    if (a.priority !== b.priority) return a.priority === 'A' ? -1 : 1;
+    return a.id - b.id;
+  });
+}
+
+// ============ LEAD MODAL ============
+function openLeadModal(id) {
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+  const s = STATUSES[l.status] || STATUSES['new'];
+
+  document.getElementById('modalTitle').textContent = l.garden_name + ' - ' + (l.contact_name || '');
+  document.getElementById('modalBody').innerHTML = `
+    <div class="lead-detail">
+      <div class="lead-info">
+        <div class="lead-field"><span class="label">שם הגן</span><span class="value">${l.garden_name}</span></div>
+        <div class="lead-field"><span class="label">איש קשר</span><span class="value">${l.contact_name || '-'}</span></div>
+        <div class="lead-field"><span class="label">טלפון</span><span class="value" style="direction:ltr"><a href="tel:${l.phone.replace(/-/g,'')}" style="color:var(--primary)">${l.phone}</a></span></div>
+        <div class="lead-field"><span class="label">עיר</span><span class="value">${l.city}</span></div>
+        <div class="lead-field"><span class="label">כתובת</span><span class="value">${l.address}</span></div>
+        <div class="lead-field"><span class="label">טבעת</span><span class="value"><span class="priority-badge priority-${l.priority.toLowerCase()}">${l.priority}</span></span></div>
+        <div class="lead-field"><span class="label">סטטוס</span><span class="value"><span class="status-badge ${s.class}">${s.label}</span></span></div>
+        <div class="lead-field"><span class="label">ניסיונות</span><span class="value">${l.attempts || 0}</span></div>
+        ${l.scheduled ? `<div class="lead-field"><span class="label">מתוזמן</span><span class="value">${formatDate(l.scheduled)}</span></div>` : ''}
+      </div>
+      <div class="lead-actions-area">
+        <div class="action-group">
+          <h4>&#x1F504; שנה סטטוס</h4>
+          <div class="action-buttons">
+            ${Object.entries(STATUSES).map(([k,v]) => `<button class="action-btn ${l.status===k?'selected':''}" onclick="changeStatus(${l.id},'${k}')">${v.label}</button>`).join('')}
+          </div>
+        </div>
+        <div class="action-group">
+          <h4>&#x1F4DE; פעולות</h4>
+          <div class="action-buttons">
+            <button class="call-btn" onclick="window.open('tel:${l.phone.replace(/-/g,'')}')">&#x1F4DE; חייג</button>
+            <button class="call-btn wa-btn" onclick="openWhatsApp(${l.id})">&#x1F4AC; WhatsApp</button>
+          </div>
+        </div>
+        <div class="notes-area">
+          <h4 style="font-size:14px;color:var(--gray-600);margin-bottom:8px">&#x1F4DD; הערות</h4>
+          <textarea id="leadNotes_${l.id}">${l.notes || ''}</textarea>
+          <button class="add-note-btn" onclick="saveNotes(${l.id})">&#x1F4BE; שמור הערה</button>
+        </div>
+      </div>
+    </div>
+    ${l.log.length ? `
+    <div class="call-log">
+      <h4>&#x1F4C3; היסטוריית פעולות</h4>
+      ${l.log.slice().reverse().map(log => `
+        <div class="log-entry">
+          <div class="log-icon ${log.type||'call'}">&#x1F4DE;</div>
+          <div class="log-content">
+            <div class="log-title">${log.action || ''}</div>
+            <div class="log-time">${formatDate(log.time)}</div>
+            ${log.note ? `<div class="log-note">${log.note}</div>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>` : ''}
+  `;
+
+  document.getElementById('leadModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('leadModal').classList.remove('show');
+}
+
+function changeStatus(id, newStatus) {
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+  const oldStatus = l.status;
+  l.status = newStatus;
+  l.log.push({
+    type: 'status',
+    action: `שינוי סטטוס: ${STATUSES[oldStatus]?.label} → ${STATUSES[newStatus]?.label}`,
+    time: new Date().toISOString()
+  });
+  saveData();
+  openLeadModal(id);
+  renderLeadsTable();
+  updateBadges();
+}
+
+function saveNotes(id) {
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+  const textarea = document.getElementById('leadNotes_' + id);
+  if (textarea) {
+    l.notes = textarea.value;
+    l.log.push({
+      type: 'note',
+      action: 'עדכון הערה',
+      time: new Date().toISOString(),
+      note: textarea.value
+    });
+    saveData();
+    alert('נשמר!');
+  }
+}
+
+// ============ PIPELINE ============
+function renderPipeline() {
+  const stages = Object.entries(STATUSES);
+  let html = '<div style="display:flex;flex-direction:column;gap:20px">';
+
+  stages.forEach(([key, s]) => {
+    const stageLeads = leads.filter(l => l.status === key);
+    if (stageLeads.length === 0) return;
+
+    html += `
+      <div class="chart-card">
+        <h3 style="display:flex;align-items:center;gap:10px">
+          <span style="width:12px;height:12px;border-radius:50%;background:${s.color};display:inline-block"></span>
+          ${s.label} (${stageLeads.length})
+        </h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          ${stageLeads.map(l => `
+            <div style="background:var(--gray-50);padding:10px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--gray-200);transition:all .2s"
+                 onclick="openLeadModal(${l.id})" onmouseover="this.style.borderColor='${s.color}'" onmouseout="this.style.borderColor='var(--gray-200)'">
+              <div style="font-weight:600;font-size:13px">${l.garden_name}</div>
+              <div style="font-size:12px;color:var(--gray-500)">${l.contact_name||'-'} &middot; ${l.city}</div>
+              <div style="font-size:11px;color:var(--gray-400);direction:ltr;text-align:right">${l.phone}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  document.getElementById('pipelineDetail').innerHTML = html;
+}
+
+// ============ TASKS ============
+function renderTasks() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayTasks = leads.filter(l => l.scheduled && l.scheduled.split('T')[0] === today);
+  const futureTasks = leads.filter(l => l.scheduled && l.scheduled.split('T')[0] > today);
+  const overdueTasks = leads.filter(l => l.scheduled && l.scheduled.split('T')[0] < today && !['first_order','not_interested','not_relevant'].includes(l.status));
+
+  let html = '';
+  if (overdueTasks.length) {
+    html += '<h3 style="color:var(--danger);margin-bottom:12px">&#x26A0; באיחור!</h3>';
+    html += overdueTasks.map(l => taskItem(l, true)).join('');
+  }
+  html += todayTasks.length ? todayTasks.map(l => taskItem(l)).join('') : '<div class="empty-state"><p>אין משימות להיום</p></div>';
+  document.getElementById('todayTasks').innerHTML = html;
+
+  document.getElementById('futureTasks').innerHTML = futureTasks.length
+    ? futureTasks.sort((a,b) => a.scheduled.localeCompare(b.scheduled)).map(l => taskItem(l)).join('')
+    : '<div class="empty-state"><p>אין משימות עתידיות</p></div>';
+}
+
+function taskItem(l, overdue = false) {
+  const s = STATUSES[l.status] || STATUSES['new'];
+  return `
+    <div class="task-item ${overdue?'':''}'" onclick="openLeadModal(${l.id})" style="${overdue?'border:1px solid #fca5a5;background:#fef2f2':''}">
+      <div class="task-icon">${l.status==='callback'?'&#x1F4DE;':'&#x1F4C5;'}</div>
+      <div class="task-info">
+        <div class="task-name">${l.garden_name} - ${l.contact_name||''}</div>
+        <div class="task-detail">${l.city} &middot; ${l.phone} &middot; <span class="status-badge ${s.class}" style="font-size:10px;padding:2px 6px">${s.label}</span></div>
+      </div>
+      <div class="task-time">${l.scheduled ? formatDate(l.scheduled) : '-'}</div>
+    </div>
+  `;
+}
+
+// ============ UTILS ============
+function startCall(id) {
+  // Switch to dialer tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-tab="dialer"]').classList.add('active');
+  document.getElementById('sec-dialer').classList.add('active');
+  renderDialer();
+  selectDialerLead(id);
+}
+
+function openWhatsApp(id) {
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+  const phone = '972' + l.phone.replace(/-/g, '').replace(/^0/, '');
+  const msg = encodeURIComponent(`שלום ${l.contact_name || ''}, אני יובל מוואי מרקט. אשמח לספר לך על המוצרים שלנו לגני ילדים ומעונות. אפשר לדבר?`);
+  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+
+function formatDate(isoStr) {
+  if (!isoStr) return '-';
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString('he-IL', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  } catch { return isoStr; }
+}
+
+function updateBadges() {
+  const callableStatuses = ['new','attempt1','attempt2','callback'];
+  const callable = leads.filter(l => callableStatuses.includes(l.status)).length;
+  document.getElementById('dialerBadge').textContent = callable;
+  document.getElementById('leadsBadge').textContent = leads.length;
+}
+
+// ============ EXPORT / IMPORT ============
+function exportData() {
+  const data = JSON.stringify(leads, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ymarket_crm_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported) && imported.length > 0) {
+        leads = imported;
+        saveData();
+        init();
+        alert('הנתונים יובאו בהצלחה! ' + leads.length + ' לידים.');
+      } else {
+        alert('קובץ לא תקין');
+      }
+    } catch(err) {
+      alert('שגיאה בייבוא: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() {
+  if (confirm('האם אתה בטוח? כל ההתקדמות תימחק!')) {
+    if (confirm('בטוח בטוח? אין דרך חזרה!')) {
+      localStorage.removeItem('ymarket_crm_leads');
+      location.reload();
+    }
+  }
+}
+
+// Close modal on outside click
+document.getElementById('leadModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ============ START ============
+init();
+</script>
+</body>
+</html>
