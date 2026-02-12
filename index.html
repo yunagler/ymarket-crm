@@ -266,9 +266,21 @@ tbody tr.priority-b { border-right: 3px solid var(--gray-300); }
 
 .highlight-row { animation: highlightPulse 1.5s ease; }
 @keyframes highlightPulse { 0%,100% { background: transparent; } 50% { background: #dbeafe; } }
+
+/* Call Toast */
+.call-toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 300; padding: 16px 32px; border-radius: 12px; font-size: 15px; font-weight: 600; font-family: inherit; box-shadow: var(--shadow-lg); display: none; align-items: center; gap: 12px; animation: toastIn .3s ease; min-width: 300px; justify-content: center; }
+.call-toast.show { display: flex; }
+.call-toast.calling { background: #065f46; color: #fff; }
+.call-toast.success { background: var(--success); color: #fff; }
+.call-toast.error { background: var(--danger); color: #fff; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+.call-toast .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+
+<div class="call-toast" id="callToast"><div class="spinner"></div><span id="callToastText">מחייג...</span></div>
 
 <div class="header">
   <h1>&#x1F4DE; וואי מרקט CRM</h1>
@@ -2012,7 +2024,7 @@ function renderLeadsTable() {
       <td>${l.city}</td>
       <td><strong>${l.garden_name}</strong></td>
       <td>${l.contact_name || '-'}</td>
-      <td style="direction:ltr;text-align:right"><a href="tel:${l.phone.replace(/-/g,'')}" onclick="event.stopPropagation()" style="color:var(--primary);text-decoration:none">${l.phone}</a></td>
+      <td style="direction:ltr;text-align:right"><a href="#" onclick="event.stopPropagation();event.preventDefault();voicenterCall('${l.phone}')" style="color:var(--primary);text-decoration:none;cursor:pointer">${l.phone}</a></td>
       <td><span class="status-badge ${s.class}">${s.label}</span></td>
       <td>${l.attempts || 0}</td>
       <td style="font-size:12px;color:var(--gray-500)">${lastAction}</td>
@@ -2098,7 +2110,7 @@ function selectDialerLead(id) {
         <div class="dc-phone">${l.phone}</div>
       </div>
       <div class="dc-actions">
-        <button class="big-call" onclick="window.open('tel:${phoneClean}')">&#x1F4DE; חייג עכשיו</button>
+        <button class="big-call" onclick="voicenterCall('${l.phone}')">&#x1F4DE; חייג עכשיו</button>
         <button class="big-wa" onclick="openWhatsApp(${l.id})">&#x1F4AC; WhatsApp</button>
       </div>
       <div class="dc-result">
@@ -2241,7 +2253,7 @@ function openLeadModal(id) {
       <div class="lead-info">
         <div class="lead-field"><span class="label">שם הגן</span><span class="value">${l.garden_name}</span></div>
         <div class="lead-field"><span class="label">איש קשר</span><span class="value">${l.contact_name || '-'}</span></div>
-        <div class="lead-field"><span class="label">טלפון</span><span class="value" style="direction:ltr"><a href="tel:${l.phone.replace(/-/g,'')}" style="color:var(--primary)">${l.phone}</a></span></div>
+        <div class="lead-field"><span class="label">טלפון</span><span class="value" style="direction:ltr"><a href="#" onclick="event.preventDefault();voicenterCall('${l.phone}')" style="color:var(--primary);cursor:pointer">${l.phone}</a></span></div>
         <div class="lead-field"><span class="label">עיר</span><span class="value">${l.city}</span></div>
         <div class="lead-field"><span class="label">כתובת</span><span class="value">${l.address}</span></div>
         <div class="lead-field"><span class="label">טבעת</span><span class="value"><span class="priority-badge priority-${l.priority.toLowerCase()}">${l.priority}</span></span></div>
@@ -2259,7 +2271,7 @@ function openLeadModal(id) {
         <div class="action-group">
           <h4>&#x1F4DE; פעולות</h4>
           <div class="action-buttons">
-            <button class="call-btn" onclick="window.open('tel:${l.phone.replace(/-/g,'')}')">&#x1F4DE; חייג</button>
+            <button class="call-btn" onclick="voicenterCall('${l.phone}')">&#x1F4DE; חייג</button>
             <button class="call-btn wa-btn" onclick="openWhatsApp(${l.id})">&#x1F4AC; WhatsApp</button>
           </div>
         </div>
@@ -2391,6 +2403,50 @@ function taskItem(l, overdue = false) {
       <div class="task-time">${l.scheduled ? formatDate(l.scheduled) : '-'}</div>
     </div>
   `;
+}
+
+// ============ VOICENTER CONFIG ============
+const VOICENTER = {
+  code: '136909',
+  phone: '0549922492',
+  endpoint: 'https://api.voicenter.com/ForwardDialer/click2call.aspx'
+};
+
+function voicenterCall(targetPhone) {
+  const clean = targetPhone.replace(/-/g, '');
+  const url = `${VOICENTER.endpoint}?phone=${VOICENTER.phone}&target=${clean}&code=${VOICENTER.code}&action=call&format=json`;
+
+  showCallToast('calling', `מחייג ל-${targetPhone}...`);
+
+  // Use Image trick to bypass CORS (fire-and-forget GET request)
+  const img = new Image();
+  img.onload = img.onerror = function() {
+    // The API call was made regardless of image load result
+    showCallToast('success', `השיחה יוצאת! ${targetPhone}`);
+    setTimeout(hideCallToast, 4000);
+  };
+  img.src = url + '&_t=' + Date.now();
+
+  // Also try fetch as backup
+  fetch(url, { mode: 'no-cors' }).catch(() => {});
+
+  return true;
+}
+
+function showCallToast(type, text) {
+  const toast = document.getElementById('callToast');
+  const toastText = document.getElementById('callToastText');
+  toast.className = 'call-toast show ' + type;
+  toastText.textContent = text;
+  if (type === 'calling') {
+    toast.querySelector('.spinner').style.display = 'block';
+  } else {
+    toast.querySelector('.spinner').style.display = 'none';
+  }
+}
+
+function hideCallToast() {
+  document.getElementById('callToast').classList.remove('show');
 }
 
 // ============ UTILS ============
