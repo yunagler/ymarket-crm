@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניתוח שיחות מכירה - וואי מרקט | תמהיל שיווקי</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+header { text-align: center; padding: 30px 0; border-bottom: 2px solid #1e293b; margin-bottom: 30px; }
+header h1 { font-size: 2.2em; color: #60a5fa; margin-bottom: 10px; }
+header .subtitle { color: #94a3b8; font-size: 1.1em; }
+header .date { color: #64748b; font-size: 0.9em; margin-top: 5px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+.stat-card { background: #1e293b; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #334155; }
+.stat-card .value { font-size: 2em; font-weight: bold; color: #60a5fa; }
+.stat-card .label { color: #94a3b8; font-size: 0.85em; margin-top: 5px; }
+.stat-card.green .value { color: #4ade80; }
+.stat-card.red .value { color: #f87171; }
+.stat-card.yellow .value { color: #fbbf24; }
+.stat-card.purple .value { color: #a78bfa; }
+
+.section { background: #1e293b; border-radius: 12px; padding: 25px; margin-bottom: 25px; border: 1px solid #334155; }
+.section h2 { font-size: 1.4em; color: #60a5fa; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+.section h3 { font-size: 1.1em; color: #93c5fd; margin: 15px 0 10px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+@media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+
+.call-card { background: #0f172a; border-radius: 10px; padding: 18px; margin-bottom: 15px; border-right: 4px solid #60a5fa; }
+.call-card.hot { border-right-color: #4ade80; }
+.call-card.warm { border-right-color: #fbbf24; }
+.call-card.cold { border-right-color: #f87171; }
+
+.call-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.call-name { font-weight: bold; font-size: 1.05em; }
+.call-duration { background: #334155; padding: 2px 10px; border-radius: 20px; font-size: 0.85em; }
+.call-details { color: #94a3b8; font-size: 0.85em; margin-bottom: 8px; }
+.call-transcript { background: #1e293b; padding: 12px; border-radius: 8px; font-size: 0.9em; color: #cbd5e1; max-height: 200px; overflow-y: auto; }
+.call-analysis { margin-top: 10px; padding: 10px; background: #1e293b; border-radius: 8px; }
+.call-analysis .insight { font-size: 0.9em; margin-bottom: 5px; }
+.call-analysis .insight strong { color: #60a5fa; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8em; margin: 2px; }
+.badge-green { background: #064e3b; color: #4ade80; }
+.badge-red { background: #450a0a; color: #fca5a5; }
+.badge-yellow { background: #422006; color: #fbbf24; }
+.badge-blue { background: #172554; color: #93c5fd; }
+
+.insight-box { background: #0f172a; border-radius: 10px; padding: 18px; margin-bottom: 15px; }
+.insight-box h4 { color: #fbbf24; margin-bottom: 8px; }
+.insight-box ul { padding-right: 20px; }
+.insight-box li { margin-bottom: 6px; color: #cbd5e1; }
+
+.action-item { background: #0f172a; border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+.action-number { background: #60a5fa; color: #0f172a; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+.action-text h4 { color: #e2e8f0; margin-bottom: 5px; }
+.action-text p { color: #94a3b8; font-size: 0.9em; }
+
+.strategy-card { background: #0f172a; border-radius: 10px; padding: 20px; margin-bottom: 15px; border-top: 3px solid #60a5fa; }
+.strategy-card.improve { border-top-color: #f87171; }
+.strategy-card.keep { border-top-color: #4ade80; }
+.strategy-card.add { border-top-color: #a78bfa; }
+.strategy-card h4 { font-size: 1.05em; margin-bottom: 10px; }
+
+.progress-bar { height: 8px; background: #334155; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.progress-fill.green { background: #4ade80; }
+.progress-fill.yellow { background: #fbbf24; }
+.progress-fill.red { background: #f87171; }
+
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid #334155; }
+th { background: #0f172a; color: #93c5fd; font-weight: 600; }
+tr:hover { background: #0f172a44; }
+
+.pitch-example { background: #064e3b; border: 1px solid #065f46; border-radius: 10px; padding: 15px; margin: 10px 0; }
+.pitch-example .label { color: #4ade80; font-weight: bold; margin-bottom: 5px; }
+
+.metric-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; }
+.metric-row:last-child { border-bottom: none; }
+.metric-label { color: #94a3b8; }
+.metric-value { font-weight: bold; }
+
+.funnel { text-align: center; padding: 20px; }
+.funnel-step { margin: 5px auto; padding: 12px; border-radius: 8px; color: white; font-weight: bold; }
+
+.score-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; margin: 0 auto 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+    <h1>ניתוח שיחות מכירה + תמהיל שיווקי</h1>
+    <div class="subtitle">וואי מרקט | ספק סיטונאי לגני ילדים ומעונות</div>
+    <div class="date">12 פברואר 2026 | מבוסס על 10 שיחות מוקלטות עם תמלול</div>
+</header>
+
+<!-- KPI Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="value">10</div>
+        <div class="label">שיחות שתומללו</div>
+    </div>
+    <div class="stat-card green">
+        <div class="value">3</div>
+        <div class="label">לידים חמים (יש סיכוי)</div>
+    </div>
+    <div class="stat-card yellow">
+        <div class="value">4</div>
+        <div class="label">לידים פושרים</div>
+    </div>
+    <div class="stat-card red">
+        <div class="value">3</div>
+        <div class="label">דחיות ברורות</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="value">11:39</div>
+        <div class="label">סה"כ זמן שיחות</div>
+    </div>
+    <div class="stat-card">
+        <div class="value">30%</div>
+        <div class="label">שיעור התעניינות</div>
+    </div>
+</div>
+
+<!-- Sales Funnel -->
+<div class="section">
+    <h2>משפך המכירות - מצב נוכחי</h2>
+    <div class="funnel">
+        <div class="funnel-step" style="width:100%; background:#3b82f6;">35 שיחות בוצעו היום (20 נענו)</div>
+        <div class="funnel-step" style="width:80%; background:#6366f1;">10 שיחות משמעותיות (20+ שניות)</div>
+        <div class="funnel-step" style="width:50%; background:#8b5cf6;">5 הקשיבו להצעה</div>
+        <div class="funnel-step" style="width:30%; background:#a855f7;">3 ביקשו קטלוג / הזמינו</div>
+        <div class="funnel-step" style="width:15%; background:#4ade80;">1 הזמנה בפועל (כפפות)</div>
+    </div>
+</div>
+
+<!-- Call Analysis - Each Call -->
+<div class="section">
+    <h2>ניתוח מפורט לכל שיחה</h2>
+
+    <!-- Call 1: 0549217616 - 210s - HOT -->
+    <div class="call-card hot">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #1 - שירי אורון טל (גן ירון)</span>
+                <span class="badge badge-green">ליד חם - הזמנה!</span>
+            </div>
+            <span class="call-duration">3:30 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 054-9217616 | גני תקווה | עדיפות A
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> יובל מציג את עצמו כספק סיטונאי של חומרי ניקיון, אביזרי ניקיון, מוצרי נייר וחד פעמי, ציוד משרדי. מציע כפפות ניטריל ב-80 ש"ח לקרטון. שירי שואלת "עם אבקה או בלי אבקה?" - מראה שהיא מכירה את המוצר. שירי מתלהבת: "יאללה בואי, תביא מה עוד יש לך!" - מבקשת שישלח את כל הקטלוג בוואטסאפ. יובל מציע להביא ארגזים. שירי אומרת יש לה 160 ילדים (מעון!). דיון על מידות כפפות (מדיום/אקסטרא לארג'). יובל מגיע פיזית תוך שעה וחצי. שירי מגני תקווה, ליד פסגת זאב / עיריית גני תקווה.
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>מה עבד:</strong> ציון מחיר ספציפי (80 ש"ח) + "סטוק" = דחיפות. הלקוחה הגיבה מיד.</div>
+            <div class="insight"><strong>מה עבד:</strong> יובל ידע בדיוק מאיפה השיג את הטלפון ("אתרי גנים") - בונה אמון.</div>
+            <div class="insight"><strong>מה עבד:</strong> הצעה לבוא פיזית - סוגר מהר.</div>
+            <div class="insight"><strong>תוצאה:</strong> <span class="badge badge-green">הזמנה! יובל נסע לספק כפפות + קטלוג מלא</span></div>
+        </div>
+    </div>
+
+    <!-- Call 2: 0545241127 - 120s - HOT -->
+    <div class="call-card hot">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #2 - מושב גת רימון</span>
+                <span class="badge badge-green">ליד חם - שלח קטלוג</span>
+            </div>
+            <span class="call-duration">2:00 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 054-5241127 | מושב גת רימון / ראש העין
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> יובל מציג עצמו כספק סיטונאי של חומרי ניקיון, אביזרי ניקיון, מוצרי נייר וחד פעמי, ציוד משרדי. מציין שיש קטלוג אינטרנטי שאפשר לראות מחירים "ממש ממש תחרותיים". "אנחנו לא סופר, אנחנו סיטונאים." הלקוחה מתעניינת - יובל מסביר שישלח קטלוג בוואטסאפ, ואם היא רוצה לראות מחירים צריך לרשום אותה כלקוחה. הלקוחה אומרת היא פנויה מחר או בשבת. יובל מציע כפפות ניטריל ב-80 ש"ח כולל מע"מ (10 קופסאות של 100). הלקוחה שואלת "כמה כפפות?" - מראה עניין. דיון על מיקום - מושב גת רימון, קרוב לראש העין.
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>מה עבד:</strong> "מחירים ממש ממש תחרותיים" + "אנחנו לא סופר, אנחנו סיטונאים" - הבידול ברור.</div>
+            <div class="insight"><strong>מה עבד:</strong> הצעת הקטלוג האינטרנטי + רישום למחירון אישי - מרגיש בלעדי.</div>
+            <div class="insight"><strong>מה עבד:</strong> הצעת הכפפות כ"מבצע" פותחת את הדלת.</div>
+            <div class="insight"><strong>תוצאה:</strong> <span class="badge badge-green">שלח קטלוג + מחירון בוואטסאפ, הלקוחה תבדוק</span></div>
+        </div>
+    </div>
+
+    <!-- Call 3: 0509646777 - 117s - HOT -->
+    <div class="call-card hot">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #3 - ענבל גיספן (ויצו, גני תקווה)</span>
+                <span class="badge badge-green">ליד חם - הפנתה לרוכשת</span>
+            </div>
+            <span class="call-duration">1:57 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 050-9646777 | גני תקווה | עדיפות A | מנהלת מעון ויצו
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> יובל מציג - ספק חומרי ניקיון, אביזרי ניקיון, מוצרי נייר חד פעמי. ענבל אומרת: "אני מנהלת מעון, אבל זה לא באחריותי דברים האלה, אני שייכת לויצו". מפנה ליובל לדבר עם הרוכשת. שואלת "אתם מי?" - יובל עונה "חד ומרונות, ויצו, יש 160 מעונות". ענבל מבקשת: "תשאיר מספר" - נותנת מספר של קובי (הרוכש). שיחה חיובית.
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>מה עבד:</strong> ענבל חיובית ומפנה לרוכש - זה אומר שהיא מעריכה את ההצעה.</div>
+            <div class="insight"><strong>חשוב:</strong> ויצו = רשת של 160 מעונות! אם יובל יצליח להיכנס - הזמנות ענק.</div>
+            <div class="insight"><strong>פעולה נדרשת:</strong> <span class="badge badge-blue">להתקשר לקובי (הרוכש של ויצו) בהקדם!</span></div>
+            <div class="insight"><strong>תוצאה:</strong> <span class="badge badge-green">קיבל שם + מספר של רוכש ויצו</span></div>
+        </div>
+    </div>
+
+    <!-- Call 4: 0509646777 - 39s - Follow up -->
+    <div class="call-card warm">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #4 - ענבל גיספן (ויצו) - שיחה שנייה</span>
+                <span class="badge badge-yellow">מעקב</span>
+            </div>
+            <span class="call-duration">0:39 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 050-9646777 | שיחת מעקב
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> שיחה קצרה - ענבל אומרת שהיא בעבודה, לא יכולה לדבר. "אם זה משהו שנמכור או משהו כזה... אני בעבודה, אני לא יכולה לדבר... אין בעיה, ביי ביי". התמלול לא ברור (רעשי רקע).
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>לקח:</strong> לא להתקשר שוב לאותה איש קשר באותו יום - לתת זמן.</div>
+        </div>
+    </div>
+
+    <!-- Call 5: 0523265225 - 38s - COLD -->
+    <div class="call-card cold">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #5 - 052-3265225</span>
+                <span class="badge badge-red">דחייה מנומסת</span>
+            </div>
+            <span class="call-duration">0:38 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 052-3265225
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> יובל מציג: "ספקים סיטונאיים של חומרי ניקיון, אביזרי ניקיון, מוצרי חד פעמי". מציע כפפות ב-80 ש"ח. הלקוחה: "אני לא מעוניינת, אני אין לה, תודה". יובל מנסה: "גם מגבונים, כל הדברים האלה נפלאים, ממש ממש תחרותי". הלקוחה: "זה לא סופר, כן, לא אבל אני לא מעוניינת". ביי.
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>מה לא עבד:</strong> "אני לא מעוניינת" פעמיים - דחייה ברורה.</div>
+            <div class="insight"><strong>לקח:</strong> כשאומרים "לא מעוניינת" - לא להמשיך להציע. לשמור על כבוד.</div>
+        </div>
+    </div>
+
+    <!-- Call 6: 0526741263 - 37s - WARM -->
+    <div class="call-card warm">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #6 - שינרית (052-6741263)</span>
+                <span class="badge badge-yellow">הפנתה לאדם אחר</span>
+            </div>
+            <span class="call-duration">0:37 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 052-6741263
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> "שינרית?" - "נעים מאוד מדבר יובל, מי וי מרקט, אנחנו ספקים סיטונאים של חומרי ניקיון, אביזרי ניקיון, מוצרי חד פעמי". שינרית מפנה לאדם אחר: "תשמע... אל תחבר אותי, עכשיו...". נותנת מספר של קובי/שמואל.
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>מה עבד:</strong> פנייה בשם ("שינרית?") - יוצרת חיבור אישי.</div>
+            <div class="insight"><strong>פעולה:</strong> <span class="badge badge-blue">להתקשר לאיש הקשר שקיבל</span></div>
+        </div>
+    </div>
+
+    <!-- Call 7: 0505523800 - 56s - WARM -->
+    <div class="call-card warm">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #7 - 050-5523800</span>
+                <span class="badge badge-yellow">עניין חלקי - יש מלאי</span>
+            </div>
+            <span class="call-duration">0:56 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 050-5523800
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> יובל מציג את עצמו. הלקוח: "אני לא יכול לדבר כרגע... אבל יש לנו ברגע הנוכחי, תודה." אבל אז: "יש לי סטוק של כפפות שאני רוצה להיפטר מהם". יובל: "מה יש לך?". הלקוח: "סטוק של כפפות". דיון על מידות ומחירים. הלקוח: "תשלח לי בוואטסאפ ואני אשלח לך בערב". יש עסקה פוטנציאלית הפוכה - הלקוח רוצה למכור ליובל!
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>מעניין:</strong> לקוח שרוצה למכור כפפות ליובל - אפשרות לקנות במחיר טוב!</div>
+            <div class="insight"><strong>פעולה:</strong> <span class="badge badge-blue">לבדוק מה יש לו ובכמה - אולי כדאי לקנות</span></div>
+        </div>
+    </div>
+
+    <!-- Call 8: 0508911585 - 31s - COLD -->
+    <div class="call-card cold">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #8 - 050-8911585</span>
+                <span class="badge badge-red">לא מעוניין</span>
+            </div>
+            <span class="call-duration">0:31 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 050-8911585
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> יובל מציג: "ספקים של חומרי ניקיון, אביזרי ניקיון..." מציע כפפות ב-80 ש"ח. הלקוח: "אין, לא אין צורך... לא הפעם. תשלח לי וואטסאפ עם מחירון וכרטיס ספק". יובל: "אוקיי, תודה".
+        </div>
+        <div class="call-analysis">
+            <div class="insight"><strong>חצי חיובי:</strong> ביקש שישלחו מחירון + כרטיס ספק = לא סגר דלת לגמרי.</div>
+            <div class="insight"><strong>פעולה:</strong> <span class="badge badge-blue">לשלוח מחירון + כרטיס ספק בוואטסאפ</span></div>
+        </div>
+    </div>
+
+    <!-- Call 9: 0544567610 - 30s - WARM -->
+    <div class="call-card warm">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #9 - 054-4567610</span>
+                <span class="badge badge-yellow">שיחה לא ברורה</span>
+            </div>
+            <span class="call-duration">0:30 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 054-4567610 | שיחה נכנסת + יוצאת
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> "היי, מה שנשמע?" - שיחה קצרה ולא ברורה. נראה כמו שיחת חזרה/מעקב. האודיו לא ברור.
+        </div>
+    </div>
+
+    <!-- Call 10: 0528561388 - 21s - WARM -->
+    <div class="call-card warm">
+        <div class="call-header">
+            <div>
+                <span class="call-name">שיחה #10 - 052-8561388</span>
+                <span class="badge badge-yellow">שיחה חיובית קצרה</span>
+            </div>
+            <span class="call-duration">0:21 דקות</span>
+        </div>
+        <div class="call-details">
+            טלפון: 052-8561388
+        </div>
+        <div class="call-transcript">
+            <strong>תמלול:</strong> "אהלן, שמעת? כן, שמעתי... אהלן, מה אתה אומר? שמעתי טוב. כן, אבל אני אסתדר לגמרי. טוב, עשי עשי... תודה רבה, יופי רבה. אין בעיה... יום מהולל... תודה רבה, ביי." - שיחה קצרה ונעימה, כנראה מעקב/סגירת נושא.
+        </div>
+    </div>
+</div>
+
+<!-- What Works / Doesn't -->
+<div class="two-col">
+    <div class="section">
+        <h2 style="color: #4ade80;">מה עובד בשיחות</h2>
+
+        <div class="insight-box">
+            <h4>1. פתיחה ישירה עם הצעת ערך</h4>
+            <p>"ספקים סיטונאיים של חומרי ניקיון... במחירים תחרותיים" - כל שיחה מתחילה ככה ומיד נותנת ללקוח להבין מה מקבלים.</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>2. מבצע ספציפי כקרס</h4>
+            <p>"כפפות ניטריל ב-80 ש"ח לקרטון כולל מע"מ" - המספר הספציפי + "כולל מע"מ" + "סטוק" יוצר דחיפות ומאפשר ללקוח להשוות מחיר מיד.</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>3. הבידול "אנחנו לא סופר"</h4>
+            <p>"אנחנו לא סופר, אנחנו סיטונאים" - המשפט הזה עובד. הלקוחות מבינים שהמחירים יהיו יותר טובים.</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>4. פנייה בשם האישי</h4>
+            <p>"שינרית?", "שירי?" - כשיובל פונה בשם, השיחה מתנהלת יותר טוב ואישית.</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>5. הצעה לבוא פיזית</h4>
+            <p>עם שירי - "אני בא אליך עם ארגזים" - סגירה מיידית. ביקור פיזי = אמון.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 style="color: #f87171;">מה לא עובד / צריך שיפור</h2>
+
+        <div class="insight-box">
+            <h4>1. פתיחה ארוכה מדי</h4>
+            <p>יובל פותח עם רשימת מוצרים ארוכה: "חומרי ניקיון, אביזרי ניקיון, מוצרי נייר וחד פעמי, ציוד משרדי..." - זה מעמיס. צריך פתיחה קצרה יותר.</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>2. אין שאלה פתוחה בהתחלה</h4>
+            <p>יובל מדבר הרבה בהתחלה ולא שואל. חסר: "מה הצרכים שלכם?" / "מאיפה אתם מזמינים היום?"</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>3. לא מספיק הקשבה לסימני דחייה</h4>
+            <p>בשיחה #5 - אחרי "אני לא מעוניינת" יובל ממשיך להציע מגבונים. זה עלול לפגוע במוניטין.</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>4. חוסר מעקב מסודר</h4>
+            <p>שיחה שנייה לענבל באותו יום - מראה חוסר ארגון. צריך CRM שמסמן "שוחחו היום".</p>
+        </div>
+
+        <div class="insight-box">
+            <h4>5. אין close ברור</h4>
+            <p>בהרבה שיחות חסרה שאלת סגירה: "מתי נוח שאביא לכם דוגמה?" / "אפשר לשלוח הזמנה ראשונה?"</p>
+        </div>
+    </div>
+</div>
+
+<!-- Improved Pitch -->
+<div class="section">
+    <h2>פיץ' משופר - המלצה</h2>
+
+    <div class="pitch-example">
+        <div class="label">פתיחה מומלצת (15 שניות):</div>
+        <p>"היי [שם], מדבר יובל מוואי מרקט. אני ספק סיטונאי לגני ילדים באזור. רציתי לשאול - מאיפה אתם מזמינים היום חומרי ניקיון וחד פעמי?"</p>
+    </div>
+
+    <div class="pitch-example">
+        <div class="label">אם יש עניין (30 שניות):</div>
+        <p>"מעולה. אנחנו עובדים עם כ-200 גנים באזור ומחירים שלנו 20-30% מתחת לסופר. למשל, כפפות ניטריל - 80 ש"ח לקרטון של אלף, כולל מע"מ ומשלוח. אני שולח לך עכשיו קטלוג בוואטסאפ עם כל המחירים."</p>
+    </div>
+
+    <div class="pitch-example">
+        <div class="label">סגירה (10 שניות):</div>
+        <p>"מתי נוח שאעבור אצלכם עם דוגמאות? אני באזור גני תקווה ביום [X]."</p>
+    </div>
+</div>
+
+<!-- Marketing Mix -->
+<div class="section">
+    <h2>תמהיל שיווקי - תוכנית פעולה</h2>
+
+    <div class="two-col">
+        <div>
+            <h3 style="color: #4ade80;">ערוצים שעובדים (להמשיך)</h3>
+
+            <div class="strategy-card keep">
+                <h4>שיחות טלפון קרות - הערוץ המרכזי</h4>
+                <p>30% התעניינות מ-10 שיחות = תוצאה סבירה. אבל צריך לשפר את הפיץ'.</p>
+                <div class="metric-row">
+                    <span class="metric-label">יעד יומי</span>
+                    <span class="metric-value">30-40 שיחות</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">המרה צפויה</span>
+                    <span class="metric-value">3-4 לידים חמים ליום</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">סגירות בחודש</span>
+                    <span class="metric-value">20-30 לקוחות חדשים</span>
+                </div>
+            </div>
+
+            <div class="strategy-card keep">
+                <h4>ביקור פיזי + דוגמאות</h4>
+                <p>השיחה עם שירי הוכיחה: "אני בא אליך" = סגירה מיידית. לאחד ביקורים - לצאת לאזור שלם ביום.</p>
+                <div class="metric-row">
+                    <span class="metric-label">יעד שבועי</span>
+                    <span class="metric-value">2 ימי שטח</span>
+                </div>
+            </div>
+
+            <div class="strategy-card keep">
+                <h4>וואטסאפ - קטלוג + מחירון</h4>
+                <p>כמעט כל שיחה מסתיימת ב"תשלח לי בוואטסאפ". הקטלוג האינטרנטי + מחירון = כלי מכירה חזק.</p>
+            </div>
+        </div>
+
+        <div>
+            <h3 style="color: #a78bfa;">ערוצים חדשים להוסיף</h3>
+
+            <div class="strategy-card add">
+                <h4>1. WhatsApp Broadcast - מבצע שבועי</h4>
+                <p>כל שבוע מבצע אחר: כפפות, מגבונים, חומרי ניקיון. שליחה לכל הלידים.</p>
+                <div class="metric-row">
+                    <span class="metric-label">תדירות</span>
+                    <span class="metric-value">פעם בשבוע</span>
+                </div>
+            </div>
+
+            <div class="strategy-card add">
+                <h4>2. רשתות גנים (ויצו, עמותות)</h4>
+                <p>ויצו = 160 מעונות! ענבל הפנתה לרוכש. צריך להגיע לרוכשים של רשתות גדולות.</p>
+                <div class="metric-row">
+                    <span class="metric-label">רשתות למפות</span>
+                    <span class="metric-value">ויצו, נעמ"ת, אמונה, עירייה</span>
+                </div>
+            </div>
+
+            <div class="strategy-card add">
+                <h4>3. קבוצות פייסבוק של גננות</h4>
+                <p>פוסט עם מבצע + קישור לקטלוג. "ספק סיטונאי למוצרים לגני ילדים".</p>
+            </div>
+
+            <div class="strategy-card add">
+                <h4>4. המלצות מפה לאוזן</h4>
+                <p>שירי כבר לקוחה מרוצה - לבקש ממנה להמליץ לגננות אחרות. תמריץ: 5% הנחה על הזמנה הבאה.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Improvement Strategy -->
+<div class="section">
+    <h2>אסטרטגיה לשיפור - מה לא עובד ואיך לתקן</h2>
+
+    <div class="strategy-card improve">
+        <h4>בעיה: 70% מהשיחות לא מניבות ליד</h4>
+        <p><strong>פתרון:</strong></p>
+        <ul style="padding-right: 20px; margin-top: 8px;">
+            <li>לקצר את הפתיחה ל-15 שניות מקסימום</li>
+            <li>לפתוח בשאלה ולא בהצהרה</li>
+            <li>להזכיר מספר ספציפי (80 ש"ח) תוך 20 שניות</li>
+            <li>לא להזכיר יותר מ-2 קטגוריות מוצרים בהתחלה</li>
+        </ul>
+    </div>
+
+    <div class="strategy-card improve">
+        <h4>בעיה: אין מערכת מעקב - שיחות כפולות</h4>
+        <p><strong>פתרון:</strong></p>
+        <ul style="padding-right: 20px; margin-top: 8px;">
+            <li>CRM כבר קיים! לסמן כל שיחה ותוצאה</li>
+            <li>לתזמן follow-up אוטומטי אחרי 3 ימים</li>
+            <li>לא להתקשר לאותו ליד יותר מפעם ביום</li>
+        </ul>
+    </div>
+
+    <div class="strategy-card improve">
+        <h4>בעיה: לא מגיעים לאדם הנכון (רוכש)</h4>
+        <p><strong>פתרון:</strong></p>
+        <ul style="padding-right: 20px; margin-top: 8px;">
+            <li>לשאול מיד: "מי אחראי על הזמנות אצלכם?"</li>
+            <li>לבנות רשימת רוכשים נפרדת לרשתות</li>
+            <li>ויצו, נעמ"ת, אמונה - יש רוכש מרכזי</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Action Items -->
+<div class="section">
+    <h2>צעדים הבאים - מיידי</h2>
+
+    <div class="action-item">
+        <div class="action-number">1</div>
+        <div class="action-text">
+            <h4>להתקשר לקובי - רוכש ויצו</h4>
+            <p>ענבל גיספן הפנתה. 160 מעונות = הזדמנות ענקית. לחייג היום!</p>
+        </div>
+    </div>
+
+    <div class="action-item">
+        <div class="action-number">2</div>
+        <div class="action-text">
+            <h4>לשלוח קטלוג + מחירון ל-5 לידים בוואטסאפ</h4>
+            <p>054-5241127 (גת רימון), 050-8911585 (ביקש מחירון), 050-5523800 (יש סטוק כפפות)</p>
+        </div>
+    </div>
+
+    <div class="action-item">
+        <div class="action-number">3</div>
+        <div class="action-text">
+            <h4>לעדכן CRM - סטטוס כל הלידים</h4>
+            <p>לסמן: שירי אורון טל = לקוחה פעילה, ענבל = הפנתה, גת רימון = שלח קטלוג</p>
+        </div>
+    </div>
+
+    <div class="action-item">
+        <div class="action-number">4</div>
+        <div class="action-text">
+            <h4>לתרגל פיץ' מקוצר</h4>
+            <p>15 שניות פתיחה + שאלה. לא יותר מ-2 קטגוריות. מספר ספציפי תוך 20 שניות.</p>
+        </div>
+    </div>
+
+    <div class="action-item">
+        <div class="action-number">5</div>
+        <div class="action-text">
+            <h4>למפות רשתות גנים גדולות</h4>
+            <p>ויצו (160), נעמ"ת, אמונה, עיריית גני תקווה - למצוא את הרוכש המרכזי של כל רשת.</p>
+        </div>
+    </div>
+
+    <div class="action-item">
+        <div class="action-number">6</div>
+        <div class="action-text">
+            <h4>להכין מבצע שבועי לוואטסאפ</h4>
+            <p>השבוע: כפפות ניטריל 80 ש"ח. שבוע הבא: מגבונים. שבוע אחריו: חומרי ניקיון.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Score Summary -->
+<div class="section">
+    <h2>סיכום ציונים</h2>
+    <table>
+        <tr>
+            <th>קריטריון</th>
+            <th>ציון</th>
+            <th>הערה</th>
+        </tr>
+        <tr>
+            <td>איכות הפתיחה</td>
+            <td><span class="badge badge-yellow">6/10</span></td>
+            <td>ארוכה מדי, חסרה שאלה פתוחה</td>
+        </tr>
+        <tr>
+            <td>הצעת ערך</td>
+            <td><span class="badge badge-green">8/10</span></td>
+            <td>מחיר ספציפי + "סיטונאי" = ברור</td>
+        </tr>
+        <tr>
+            <td>הקשבה ללקוח</td>
+            <td><span class="badge badge-yellow">6/10</span></td>
+            <td>לפעמים ממשיך אחרי דחייה</td>
+        </tr>
+        <tr>
+            <td>סגירה</td>
+            <td><span class="badge badge-yellow">5/10</span></td>
+            <td>חסרה שאלת סגירה ברורה</td>
+        </tr>
+        <tr>
+            <td>Follow-up</td>
+            <td><span class="badge badge-red">4/10</span></td>
+            <td>שיחות כפולות, חסר מעקב</td>
+        </tr>
+        <tr>
+            <td>ידע מוצר</td>
+            <td><span class="badge badge-green">9/10</span></td>
+            <td>יובל מכיר היטב את המוצרים</td>
+        </tr>
+        <tr>
+            <td>אנרגיה ויחס</td>
+            <td><span class="badge badge-green">8/10</span></td>
+            <td>חיובי, נעים, לא אגרסיבי</td>
+        </tr>
+        <tr style="font-weight: bold; background: #0f172a;">
+            <td>ציון כולל</td>
+            <td><span class="badge badge-yellow">6.6/10</span></td>
+            <td>בסיס טוב - צריך שיפור בפתיחה וסגירה</td>
+        </tr>
+    </table>
+</div>
+
+<footer style="text-align: center; padding: 20px; color: #64748b; font-size: 0.85em;">
+    ניתוח מבוסס על 10 שיחות מוקלטות מ-12/02/2026 | וואי מרקט | נוצר אוטומטית מתמלולי Whisper
+</footer>
+
+</div>
+</body>
+</html>
