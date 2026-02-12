@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניתוח שיחות וואי מרקט - 12/02/2026</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;color:#e2e8f0;padding:20px}
+.container{max-width:1200px;margin:0 auto}
+h1{text-align:center;font-size:2em;margin-bottom:10px;color:#38bdf8}
+.subtitle{text-align:center;color:#94a3b8;margin-bottom:30px;font-size:1.1em}
+
+/* Stats Grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:30px}
+.stat{background:#1e293b;border-radius:12px;padding:20px;text-align:center;border:1px solid #334155}
+.stat .number{font-size:2.5em;font-weight:700;color:#38bdf8}
+.stat .label{color:#94a3b8;font-size:0.9em;margin-top:5px}
+.stat.green .number{color:#4ade80}
+.stat.red .number{color:#f87171}
+.stat.yellow .number{color:#fbbf24}
+.stat.purple .number{color:#a78bfa}
+
+/* Pipeline */
+.pipeline{background:#1e293b;border-radius:12px;padding:25px;margin-bottom:30px;border:1px solid #334155}
+.pipeline h2{color:#38bdf8;margin-bottom:20px;font-size:1.3em}
+.pipeline-bar{display:flex;height:40px;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.pipeline-bar .seg{display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85em;color:#fff}
+.seg-answer{background:#4ade80}
+.seg-short{background:#fbbf24}
+.seg-cancel{background:#f87171}
+.seg-notcalled{background:#6b7280}
+.legend{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px}
+.legend span{display:flex;align-items:center;gap:5px;font-size:0.85em;color:#94a3b8}
+.legend .dot{width:12px;height:12px;border-radius:3px}
+
+/* Lead Table */
+.leads-section{background:#1e293b;border-radius:12px;padding:25px;margin-bottom:30px;border:1px solid #334155}
+.leads-section h2{color:#38bdf8;margin-bottom:15px}
+table{width:100%;border-collapse:collapse}
+th{text-align:right;padding:10px 8px;background:#0f172a;color:#94a3b8;font-size:0.85em;border-bottom:2px solid #334155}
+td{padding:10px 8px;border-bottom:1px solid #1e293b;font-size:0.9em}
+tr:hover{background:#334155}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.8em;font-weight:600}
+.badge-hot{background:#dc262620;color:#f87171;border:1px solid #f87171}
+.badge-warm{background:#f59e0b20;color:#fbbf24;border:1px solid #fbbf24}
+.badge-cold{background:#3b82f620;color:#60a5fa;border:1px solid #60a5fa}
+.badge-miss{background:#6b728020;color:#9ca3af;border:1px solid #9ca3af}
+.badge-new{background:#22c55e20;color:#4ade80;border:1px solid #4ade80}
+.duration-bar{background:#334155;border-radius:4px;height:8px;position:relative;min-width:60px}
+.duration-fill{background:#38bdf8;border-radius:4px;height:100%;min-width:2px}
+
+/* Recording Player */
+.rec-link{color:#38bdf8;text-decoration:none;cursor:pointer;font-size:0.85em}
+.rec-link:hover{text-decoration:underline}
+
+/* Recommendations */
+.recs{background:#1e293b;border-radius:12px;padding:25px;margin-bottom:30px;border:1px solid #334155}
+.recs h2{color:#4ade80;margin-bottom:15px}
+.rec-item{background:#0f172a;border-radius:8px;padding:15px;margin-bottom:12px;border-right:4px solid #4ade80}
+.rec-item.urgent{border-right-color:#f87171}
+.rec-item.follow{border-right-color:#fbbf24}
+.rec-item h3{font-size:1em;margin-bottom:5px}
+.rec-item p{color:#94a3b8;font-size:0.9em;line-height:1.5}
+.rec-item .phone{color:#38bdf8;font-weight:600}
+
+/* Timeline */
+.timeline{background:#1e293b;border-radius:12px;padding:25px;margin-bottom:30px;border:1px solid #334155}
+.timeline h2{color:#38bdf8;margin-bottom:20px}
+.timeline-list{position:relative;padding-right:30px}
+.timeline-list::before{content:'';position:absolute;right:10px;top:0;bottom:0;width:2px;background:#334155}
+.tl-item{position:relative;margin-bottom:15px;padding:10px 15px;background:#0f172a;border-radius:8px}
+.tl-item::before{content:'';position:absolute;right:-25px;top:15px;width:12px;height:12px;border-radius:50%;border:2px solid #38bdf8;background:#0f172a}
+.tl-item.answered::before{background:#4ade80;border-color:#4ade80}
+.tl-item.missed::before{background:#f87171;border-color:#f87171}
+.tl-time{color:#94a3b8;font-size:0.8em}
+.tl-name{font-weight:600;font-size:0.95em}
+.tl-details{color:#94a3b8;font-size:0.85em;margin-top:3px}
+
+/* Non-lead calls */
+.other-calls{background:#1e293b;border-radius:12px;padding:25px;margin-bottom:30px;border:1px solid #334155}
+.other-calls h2{color:#a78bfa;margin-bottom:15px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>ניתוח שיחות מכירה - וואי מרקט</h1>
+<p class="subtitle">12 בפברואר 2026 | קו 054-992-2492 | קמפיין גני תקווה + ראש העין</p>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat"><div class="number">35</div><div class="label">סה"כ שיחות</div></div>
+  <div class="stat green"><div class="number">20</div><div class="label">נענו (57%)</div></div>
+  <div class="stat red"><div class="number">15</div><div class="label">לא נענו (43%)</div></div>
+  <div class="stat yellow"><div class="number">14</div><div class="label">לידים שנפגשו</div></div>
+  <div class="stat purple"><div class="number">20</div><div class="label">הקלטות</div></div>
+  <div class="stat"><div class="number">12:33</div><div class="label">סה"כ זמן שיחה</div></div>
+</div>
+
+<!-- Pipeline -->
+<div class="pipeline">
+  <h2>פילוח תוצאות שיחות</h2>
+  <div class="pipeline-bar">
+    <div class="seg seg-answer" style="width:26%" title="שיחות משמעותיות (30+ שניות)">9 שיחות ארוכות</div>
+    <div class="seg seg-short" style="width:31%" title="שיחות קצרות (1-29 שניות)">11 קצרות</div>
+    <div class="seg seg-cancel" style="width:37%" title="לא נענו">13 לא נענו</div>
+    <div class="seg seg-notcalled" style="width:6%">2</div>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:#4ade80"></span> שיחות משמעותיות (30+ שניות)</span>
+    <span><span class="dot" style="background:#fbbf24"></span> שיחות קצרות (מתחת ל-30 שניות)</span>
+    <span><span class="dot" style="background:#f87171"></span> לא נענו / בוטלו</span>
+    <span><span class="dot" style="background:#6b7280"></span> שגיאה טכנית</span>
+  </div>
+</div>
+
+<!-- Leads Table -->
+<div class="leads-section">
+  <h2>לידים שהתקשרת אליהם היום (מותאמים מה-CRM)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>שם גן</th>
+        <th>איש קשר</th>
+        <th>עיר</th>
+        <th>טלפון</th>
+        <th>שיחות</th>
+        <th>משך</th>
+        <th>סטטוס</th>
+        <th>הקלטה</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#4ade8010">
+        <td>7</td>
+        <td><strong>הגן של שירי</strong></td>
+        <td>שירי אורון טל</td>
+        <td>גני תקווה</td>
+        <td class="phone">054-921-7616</td>
+        <td>1</td>
+        <td>
+          <strong>3:30</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:100%"></div></div>
+        </td>
+        <td><span class="badge badge-hot">חם מאוד</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121231020124nfnb7o0pyph22g-vc1446-F04ibJZM-972549217616.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr style="background:#4ade8010">
+        <td>1</td>
+        <td><strong>ויצו</strong></td>
+        <td>ענבל גיספן</td>
+        <td>גני תקווה</td>
+        <td class="phone">050-964-6777</td>
+        <td>2</td>
+        <td>
+          <strong>2:36</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:74%"></div></div>
+        </td>
+        <td><span class="badge badge-hot">חם מאוד</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121237280124r13t0jeuakgc3q-vc1446-F04ibJZM-972509646777.mp3.13011.enc" target="_blank">שיחה 1</a> | <a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/2026021211535601241s4nb02k3iky9m-vc1446-F04ibJZM-972509646777.mp3.13011.enc" target="_blank">שיחה 2</a></td>
+      </tr>
+      <tr style="background:#fbbf2410">
+        <td>14</td>
+        <td><strong>גן תמתולי</strong></td>
+        <td>רוזמרין ולסקה</td>
+        <td>ראש העין</td>
+        <td class="phone">054-524-1127</td>
+        <td>2</td>
+        <td>
+          <strong>2:00</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:57%"></div></div>
+        </td>
+        <td><span class="badge badge-warm">מתעניין</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/20260212131040012445fd843f58bbae-vc1446-F04ibJZM-972545241127.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>13</td>
+        <td>הגן הבריא</td>
+        <td>אבי לוי</td>
+        <td>גני תקווה</td>
+        <td class="phone">050-552-3800</td>
+        <td>2</td>
+        <td>
+          <strong>1:02</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:30%"></div></div>
+        </td>
+        <td><span class="badge badge-warm">מתעניין</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/2026021211150801245d9091793c6fc3-vc1446-F04ibJZM-972505523800.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>הגן של איילת</td>
+        <td>איילת רוזן</td>
+        <td>גני תקווה</td>
+        <td class="phone">052-326-5225</td>
+        <td>1</td>
+        <td>
+          <strong>0:38</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:18%"></div></div>
+        </td>
+        <td><span class="badge badge-warm">מתעניין</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121309260124d73a0409686c88-vc1446-F04ibJZM-972523265225.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>ילדותי</td>
+        <td>שמרית סויסה</td>
+        <td>גני תקווה</td>
+        <td class="phone">052-674-1263</td>
+        <td>1</td>
+        <td>
+          <strong>0:37</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:18%"></div></div>
+        </td>
+        <td><span class="badge badge-warm">מתעניין</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121259150124a3edcdf8ce018e-vc1446-F04ibJZM-972526741263.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>הגן של מורן</td>
+        <td>מורן חדד</td>
+        <td>גני תקווה</td>
+        <td class="phone">050-891-1585</td>
+        <td>1</td>
+        <td>
+          <strong>0:31</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:15%"></div></div>
+        </td>
+        <td><span class="badge badge-cold">קר</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121218510124kjeoq0qa1prvbe-vc1446-F04ibJZM-972508911585.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td>עננים</td>
+        <td>אושרית מזרחי</td>
+        <td>גני תקווה</td>
+        <td class="phone">052-389-8640</td>
+        <td>2</td>
+        <td>
+          <strong>0:00</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:0%"></div></div>
+        </td>
+        <td><span class="badge badge-cold">בעיה טכנית</span></td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>16</td>
+        <td>המשפחתון של לאה</td>
+        <td>לאה סינואני</td>
+        <td>ראש העין</td>
+        <td class="phone">054-238-8918</td>
+        <td>2</td>
+        <td>
+          <strong>0:12</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:6%"></div></div>
+        </td>
+        <td><span class="badge badge-cold">קצר</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121316000124ac7267fd5da3a1-vc1446-F04ibJZM-972542388918.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>11</td>
+        <td>צעדים ראשונים</td>
+        <td>ג'יסל ניגרי קרבליו</td>
+        <td>גני תקווה</td>
+        <td class="phone">050-789-6810</td>
+        <td>1</td>
+        <td>
+          <strong>0:07</strong>
+          <div class="duration-bar"><div class="duration-fill" style="width:3%"></div></div>
+        </td>
+        <td><span class="badge badge-cold">קצר מאוד</span></td>
+        <td><a class="rec-link" href="https://cpanel.voicenter.co.il/CallsHistory/PlayRecord/202602121308500124c5da229c4dcd09-vc1446-F04ibJZM-972507896810.mp3.13011.enc" target="_blank">השמע</a></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>מעון חב"ד</td>
+        <td>דבורי האס</td>
+        <td>גני תקווה</td>
+        <td class="phone">054-859-8385</td>
+        <td>1</td>
+        <td>-</td>
+        <td><span class="badge badge-miss">לא ענתה</span></td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>כוכבים</td>
+        <td>מירי פרץ</td>
+        <td>גני תקווה</td>
+        <td class="phone">053-276-4305</td>
+        <td>2</td>
+        <td>-</td>
+        <td><span class="badge badge-miss">לא ענתה</span></td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>מעון עילאי</td>
+        <td>מאיה אלימלך</td>
+        <td>גני תקווה</td>
+        <td class="phone">055-265-9113</td>
+        <td>1</td>
+        <td>-</td>
+        <td><span class="badge badge-miss">לא ענתה</span></td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>10</td>
+        <td>הגן של אלן</td>
+        <td>אלן דורלה</td>
+        <td>גני תקווה</td>
+        <td class="phone">053-303-7674</td>
+        <td>1</td>
+        <td>-</td>
+        <td><span class="badge badge-miss">לא ענתה</span></td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Recommendations -->
+<div class="recs">
+  <h2>המלצות פעולה - מה לעשות עכשיו</h2>
+
+  <div class="rec-item urgent">
+    <h3>1. חזור מיד לשירי אורון טל - הגן של שירי (גני תקווה)</h3>
+    <p>שיחה של <strong>3:30 דקות</strong> - הכי ארוכה היום. זו שיחת מכירה משמעותית. <br>
+    <span class="phone">054-921-7616</span> | תקשיב להקלטה ותכין הצעת מחיר מותאמת</p>
+  </div>
+
+  <div class="rec-item urgent">
+    <h3>2. שלח הצעת מחיר לענבל גיספן - ויצו (גני תקווה)</h3>
+    <p>התקשרת <strong>פעמיים</strong> (1:57 + 0:39) - סה"כ 2:36 דקות שיחה. עניין ברור. <br>
+    <span class="phone">050-964-6777</span> | שלח הצעה + WhatsApp עם קטלוג</p>
+  </div>
+
+  <div class="rec-item follow">
+    <h3>3. שלח הצעה לרוזמרין ולסקה - גן תמתולי (ראש העין)</h3>
+    <p>שיחה של <strong>2 דקות</strong> אחרי ניסיון ראשון שלא נענה. 2 סניפים! פוטנציאל כפול. <br>
+    <span class="phone">054-524-1127</span> | הצעת מחיר ל-2 הסניפים</p>
+  </div>
+
+  <div class="rec-item follow">
+    <h3>4. טפל באבי לוי - הגן הבריא (גני תקווה)</h3>
+    <p>2 שיחות (6 שניות + 56 שניות). השיחה השנייה היתה ממוקדת יותר. <br>
+    <span class="phone">050-552-3800</span> | שלח WhatsApp עם מידע נוסף</p>
+  </div>
+
+  <div class="rec-item follow">
+    <h3>5. פולו-אפ לשיחות בינוניות (30-40 שניות)</h3>
+    <p>
+      - <strong>איילת רוזן</strong> (הגן של איילת): 38 שניות - <span class="phone">052-326-5225</span><br>
+      - <strong>שמרית סויסה</strong> (ילדותי): 37 שניות - <span class="phone">052-674-1263</span><br>
+      - <strong>מורן חדד</strong> (הגן של מורן): 31 שניות - <span class="phone">050-891-1585</span><br>
+      שלח WhatsApp עם קטלוג + הצעת מחיר מותאמת
+    </p>
+  </div>
+
+  <div class="rec-item">
+    <h3>6. נסה שוב מחר - לא ענו (4 לידים)</h3>
+    <p>
+      - דבורי האס (מעון חב"ד): <span class="phone">054-859-8385</span><br>
+      - מירי פרץ (כוכבים): <span class="phone">053-276-4305</span> (ניסית 2 פעמים!)<br>
+      - מאיה אלימלך (מעון עילאי): <span class="phone">055-265-9113</span><br>
+      - אלן דורלה (הגן של אלן): <span class="phone">053-303-7674</span><br>
+      נסה בשעות אחרות (בין 9:00-10:00 או 14:00-15:00)
+    </p>
+  </div>
+
+  <div class="rec-item">
+    <h3>7. ליד שלא התקשרת אליו</h3>
+    <p>
+      - <strong>לימור וולק</strong> (ניוטון, גני תקווה): <span class="phone">054-699-3666</span><br>
+      עדיפות A - חייג מחר!
+    </p>
+  </div>
+</div>
+
+<!-- Summary Insights -->
+<div class="pipeline">
+  <h2>תובנות מהנתונים</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div style="background:#0f172a;border-radius:8px;padding:15px">
+      <h3 style="color:#4ade80;margin-bottom:10px">מה עבד טוב</h3>
+      <ul style="color:#94a3b8;line-height:2;padding-right:20px">
+        <li>התחלת לחייג ב-08:42 - שעה מצוינת</li>
+        <li>3 שיחות מעל 2 דקות = עניין אמיתי</li>
+        <li>חזרת ללידים שלא ענו (ענבל, לאה)</li>
+        <li>שילוב Click2Call + שיחות ישירות</li>
+        <li>12 מתוך 13 לידים בגני תקווה - כיסוי כמעט מלא</li>
+      </ul>
+    </div>
+    <div style="background:#0f172a;border-radius:8px;padding:15px">
+      <h3 style="color:#f87171;margin-bottom:10px">מה לשפר</h3>
+      <ul style="color:#94a3b8;line-height:2;padding-right:20px">
+        <li>43% לא ענו - נסה שעות שונות</li>
+        <li>7 שיחות מתחת ל-10 שניות - שפר את הפתיחה</li>
+        <li>אין WhatsApp follow-up אחרי שיחות</li>
+        <li>חסר ליד אחד מגני תקווה (ניוטון)</li>
+        <li>054-576-2075 - 4 ניסיונות ב-3 ימים ולא ענה, צריך WhatsApp</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Other Calls -->
+<div class="other-calls">
+  <h2>שיחות שלא תואמו ללידים</h2>
+  <table>
+    <thead>
+      <tr><th>מספר</th><th>שיחות</th><th>משך</th><th>סטטוס</th><th>הערה</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>054-456-7610</td>
+        <td>5+ (נכנסות + יוצאות)</td>
+        <td>0:30 - 0:06</td>
+        <td>ANSWER</td>
+        <td>מספר חוזר - כנראה ספק/שותף</td>
+      </tr>
+      <tr>
+        <td>050-799-7998</td>
+        <td>1</td>
+        <td>0:06</td>
+        <td>ANSWER</td>
+        <td>שיחה קצרה</td>
+      </tr>
+      <tr>
+        <td>03-692-3965</td>
+        <td>1</td>
+        <td>0:04</td>
+        <td>ANSWER</td>
+        <td>קו קווי - אולי משרד</td>
+      </tr>
+      <tr>
+        <td>052-856-1388</td>
+        <td>1</td>
+        <td>0:21</td>
+        <td>ANSWER</td>
+        <td>שיחה קצרה</td>
+      </tr>
+      <tr>
+        <td>054-576-2075</td>
+        <td>4</td>
+        <td>-</td>
+        <td>CANCEL x4</td>
+        <td>4 ניסיונות ב-3 ימים - שלח WhatsApp!</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Action Plan -->
+<div class="recs" style="border:2px solid #38bdf8">
+  <h2 style="color:#38bdf8">תוכנית פעולה - המשך הקמפיין</h2>
+
+  <div class="rec-item urgent">
+    <h3>היום (12/02) - אחר הצהריים</h3>
+    <p>
+      1. <strong>תקשיב להקלטות</strong> של 3 השיחות הארוכות (שירי, ענבל, רוזמרין) - הבן מה הם צריכים<br>
+      2. <strong>שלח הצעות מחיר</strong> ב-WhatsApp לשירי, ענבל ורוזמרין<br>
+      3. <strong>שלח WhatsApp</strong> לכל מי שנענה (קטלוג + "נהניתי מהשיחה")<br>
+      4. <strong>שלח הודעה</strong> ל-054-576-2075 שלא עונה כבר 3 ימים
+    </p>
+  </div>
+
+  <div class="rec-item follow">
+    <h3>מחר (13/02) - בוקר</h3>
+    <p>
+      1. חזור ל-4 הלידים שלא ענו (דבורי, מירי, מאיה, אלן)<br>
+      2. התקשר ללימור וולק (ניוטון) - הליד שלא חייגת<br>
+      3. התחל לחייג ללידים הבאים ברשימה (כפר סבא / ראש העין)<br>
+      4. עקוב אחרי תגובות WhatsApp
+    </p>
+  </div>
+
+  <div class="rec-item">
+    <h3>השבוע - יעד</h3>
+    <p>
+      <strong>סיום גני תקווה</strong> (13 לידים - כמעט סיימת!)<br>
+      <strong>התחלת ראש העין</strong> (67 לידים - הכי גדולה)<br>
+      <strong>יעד:</strong> 3 הצעות מחיר שנשלחו + 1 הזמנה ראשונה
+    </p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
